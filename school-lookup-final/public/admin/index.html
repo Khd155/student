@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة التحكم - استعلام لجان الاختبارات</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Segoe UI',Tahoma,Arial,sans-serif;
+  direction:rtl;
+  background:#f1f5f9;
+  min-height:100vh;
+  color:#1e293b;
+}
+
+/* ── LOGIN ── */
+.login-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background: linear-gradient(120deg, #4a7fa5 0%, #4aad96 100%);
+}
+.login-card{
+  background:rgba(255,255,255,.12);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.25);border-radius:18px;
+  padding:32px 28px;width:100%;max-width:340px;text-align:center;
+}
+.login-card h1{color:#fff;font-size:18px;margin-bottom:18px;font-weight:700}
+.login-card input{
+  width:100%;height:48px;border-radius:10px;border:1.5px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.15);color:#fff;text-align:center;font-size:16px;
+  padding:0 14px;margin-bottom:12px;outline:none;
+}
+.login-card input::placeholder{color:rgba(255,255,255,.6)}
+.login-card button{
+  width:100%;height:46px;border-radius:10px;border:none;cursor:pointer;
+  background:#fff;color:#2d6a73;font-weight:700;font-size:15px;
+}
+.login-err{color:#fecaca;font-size:13px;margin-top:10px;display:none}
+
+/* ── DASHBOARD ── */
+.dash{display:none;max-width:1100px;margin:0 auto;padding:28px 16px 60px}
+.dash-header{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;
+}
+.dash-header h1{font-size:20px;font-weight:700}
+.logout-btn{
+  background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 16px;
+  cursor:pointer;font-size:13px;color:#475569;
+}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:14px;padding:18px;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+.stat-card .num{font-size:28px;font-weight:800;color:#1d4ed8}
+.stat-card .lbl{font-size:13px;color:#64748b;margin-top:4px}
+
+.panel{background:#fff;border-radius:14px;padding:20px;box-shadow:0 4px 16px rgba(0,0,0,.05);margin-bottom:24px}
+.panel h2{font-size:15px;margin-bottom:14px;font-weight:700}
+
+.grade-table{width:100%;border-collapse:collapse;font-size:13px}
+.grade-table th,.grade-table td{padding:8px 10px;text-align:right;border-bottom:1px solid #f1f5f9}
+.grade-table th{color:#64748b;font-weight:600}
+
+.toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.toolbar input{flex:1;min-width:160px;height:40px;border-radius:8px;border:1px solid #e2e8f0;padding:0 12px;font-size:14px}
+.toolbar button{height:40px;padding:0 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600}
+.btn-primary{background:#1d4ed8;color:#fff}
+.btn-secondary{background:#f1f5f9;color:#334155}
+
+table.students{width:100%;border-collapse:collapse;font-size:13px}
+table.students th,table.students td{padding:9px 8px;text-align:right;border-bottom:1px solid #f1f5f9;white-space:nowrap}
+table.students th{color:#64748b;font-weight:600;background:#f8fafc}
+table.students tr:hover{background:#f8fafc}
+.row-actions button{
+  border:none;background:none;cursor:pointer;font-size:13px;padding:4px 8px;border-radius:6px;
+}
+.row-actions .edit{color:#1d4ed8}
+.row-actions .del{color:#dc2626}
+.table-wrap{overflow-x:auto}
+
+/* modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:50}
+.modal{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:420px}
+.modal h3{margin-bottom:16px;font-size:16px}
+.modal label{display:block;font-size:12px;color:#64748b;margin-bottom:4px;margin-top:10px}
+.modal input{width:100%;height:42px;border:1px solid #e2e8f0;border-radius:8px;padding:0 12px;font-size:14px}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions button{flex:1;height:42px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <h1>لوحة تحكم المسؤول</h1>
+    <input type="password" id="passwordInput" placeholder="كلمة المرور">
+    <button onclick="login()">دخول</button>
+    <div class="login-err" id="loginErr">كلمة المرور غير صحيحة</div>
+  </div>
+</div>
+
+<div class="dash" id="dash">
+  <div class="dash-header">
+    <h1>لوحة تحكم استعلام لجان الاختبارات</h1>
+    <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
+  </div>
+
+  <div class="stat-grid" id="statGrid"></div>
+
+  <div class="panel">
+    <h2>عدد الطلاب حسب الصف</h2>
+    <table class="grade-table" id="gradeTable"></table>
+  </div>
+
+  <div class="panel">
+    <h2>إدارة الطلاب</h2>
+    <div class="toolbar">
+      <input type="text" id="searchBox" placeholder="بحث بالاسم أو رقم الهوية">
+      <button class="btn-secondary" onclick="loadStudents()">بحث</button>
+      <button class="btn-primary" onclick="openModal()">+ إضافة طالب</button>
+    </div>
+    <div class="table-wrap">
+      <table class="students">
+        <thead>
+          <tr><th>الهوية</th><th>الاسم</th><th>الجلوس</th><th>اللجنة</th><th>المقر</th><th>الصف</th><th>الفصل</th><th></th></tr>
+        </thead>
+        <tbody id="studentsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">إضافة طالب</h3>
+    <label>رقم الهوية</label>
+    <input id="f_id" type="text">
+    <label>الاسم</label>
+    <input id="f_name" type="text">
+    <label>رقم الجلوس</label>
+    <input id="f_seat" type="text">
+    <label>اللجنة</label>
+    <input id="f_committee" type="text">
+    <label>مقر اللجنة</label>
+    <input id="f_location" type="text">
+    <label>الصف</label>
+    <input id="f_grade" type="text">
+    <label>الفصل</label>
+    <input id="f_class" type="text">
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">إلغاء</button>
+      <button class="btn-primary" onclick="saveStudent()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let editingId = null;
+
+async function checkAuth(){
+  const res = await fetch('/api/admin/me');
+  const data = await res.json();
+  if(data.authenticated){
+    showDash();
+  }
+}
+
+async function login(){
+  const password = document.getElementById('passwordInput').value;
+  const res = await fetch('/api/admin/login', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ password })
+  });
+  if(res.ok){
+    showDash();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+  }
+}
+
+async function logout(){
+  await fetch('/api/admin/logout', { method:'POST' });
+  document.getElementById('dash').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+function showDash(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dash').style.display = 'block';
+  loadStats();
+  loadStudents();
+}
+
+async function loadStats(){
+  const res = await fetch('/api/admin/stats');
+  if(!res.ok) return;
+  const data = await res.json();
+
+  document.getElementById('statGrid').innerHTML = `
+    <div class="stat-card"><div class="num">${data.pageViews}</div><div class="lbl">عدد زيارات الموقع</div></div>
+    <div class="stat-card"><div class="num">${data.searches}</div><div class="lbl">عدد عمليات البحث</div></div>
+    <div class="stat-card"><div class="num">${data.totalStudents}</div><div class="lbl">إجمالي عدد الطلاب</div></div>
+  `;
+
+  document.getElementById('gradeTable').innerHTML = `
+    <tr><th>الصف</th><th>عدد الطلاب</th></tr>
+    ${data.byGrade.map(g => `<tr><td>${g.grade}</td><td>${g.count}</td></tr>`).join('')}
+  `;
+}
+
+async function loadStudents(){
+  const q = document.getElementById('searchBox').value.trim();
+  const url = q ? `/api/admin/students?q=${encodeURIComponent(q)}` : '/api/admin/students';
+  const res = await fetch(url);
+  if(!res.ok) return;
+  const data = await res.json();
+
+  document.getElementById('studentsBody').innerHTML = data.students.map(s => `
+    <tr>
+      <td>${s.id}</td><td>${s.name}</td><td>${s.seat}</td><td>${s.committee}</td>
+      <td>${s.location}</td><td>${s.grade}</td><td>${s.class}</td>
+      <td class="row-actions">
+        <button class="edit" onclick='editStudent(${JSON.stringify(s)})'>تعديل</button>
+        <button class="del" onclick="deleteStudent('${s.id}')">حذف</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openModal(){
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'إضافة طالب';
+  ['f_id','f_name','f_seat','f_committee','f_location','f_grade','f_class'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f_id').disabled = false;
+  document.getElementById('modalBg').style.display = 'flex';
+}
+
+function editStudent(s){
+  editingId = s.id;
+  document.getElementById('modalTitle').textContent = 'تعديل طالب';
+  document.getElementById('f_id').value = s.id;
+  document.getElementById('f_id').disabled = true;
+  document.getElementById('f_name').value = s.name;
+  document.getElementById('f_seat').value = s.seat;
+  document.getElementById('f_committee').value = s.committee;
+  document.getElementById('f_location').value = s.location;
+  document.getElementById('f_grade').value = s.grade;
+  document.getElementById('f_class').value = s.class;
+  document.getElementById('modalBg').style.display = 'flex';
+}
+
+function closeModal(){
+  document.getElementById('modalBg').style.display = 'none';
+}
+
+async function saveStudent(){
+  const payload = {
+    id: document.getElementById('f_id').value.trim(),
+    name: document.getElementById('f_name').value.trim(),
+    seat: document.getElementById('f_seat').value.trim(),
+    committee: document.getElementById('f_committee').value.trim(),
+    location: document.getElementById('f_location').value.trim(),
+    grade: document.getElementById('f_grade').value.trim(),
+    class: document.getElementById('f_class').value.trim(),
+  };
+
+  const res = await fetch('/api/admin/students', {
+    method: editingId ? 'PUT' : 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+
+  if(res.ok){
+    closeModal();
+    loadStudents();
+    loadStats();
+  } else {
+    alert('حدث خطأ، تحقق من البيانات');
+  }
+}
+
+async function deleteStudent(id){
+  if(!confirm('تأكيد حذف الطالب؟')) return;
+  await fetch(`/api/admin/students?id=${encodeURIComponent(id)}`, { method:'DELETE' });
+  loadStudents();
+  loadStats();
+}
+
+document.getElementById('passwordInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter') login();
+});
+
+checkAuth();
+</script>
+</body>
+</html>
