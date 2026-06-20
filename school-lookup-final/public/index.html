@@ -261,8 +261,9 @@ body {
       id="idInput"
       class="id-input"
       placeholder="أدخل رقم الهوية"
-      inputmode="text"
-      maxlength="20"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      maxlength="10"
       autocomplete="off"
     />
     <button class="search-btn" onclick="doSearch()" aria-label="بحث">🔍</button>
@@ -347,6 +348,9 @@ async function doSearch(){
 
 document.getElementById('idInput').addEventListener('keydown',e=>{
   if(e.key==='Enter') doSearch();
+});
+document.getElementById('idInput').addEventListener('input',e=>{
+  e.target.value=e.target.value.replace(/\D/g,'').slice(0,10);
 });
 </script>
 </body>
