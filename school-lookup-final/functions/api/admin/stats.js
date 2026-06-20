@@ -18,6 +18,7 @@ export async function onRequestGet(context) {
   return new Response(JSON.stringify({
     pageViews: counters.page_views || 0,
     searches: counters.searches || 0,
+    failedSearches: counters.failed_searches || 0,
     totalStudents: total.c,
     byGrade: byGrade.results,
   }), { status: 200, headers });

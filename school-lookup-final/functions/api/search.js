@@ -32,6 +32,11 @@ export async function onRequest(context) {
     ).bind(studentId, studentId).all();
 
     if (!results || results.length === 0) {
+      context.waitUntil(
+        context.env.DB.prepare(
+          "INSERT INTO stats(key,value) VALUES('failed_searches',1) ON CONFLICT(key) DO UPDATE SET value=value+1"
+        ).run().catch(() => {})
+      );
       return new Response(JSON.stringify({ found: false }), { status: 200, headers });
     }
 

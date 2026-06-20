@@ -259,6 +259,7 @@ async function loadStats(){
   document.getElementById('statGrid').innerHTML = `
     <div class="stat-card"><div class="icon">👁️</div><div><div class="num">${data.pageViews}</div><div class="lbl">عدد زيارات الموقع</div></div></div>
     <div class="stat-card"><div class="icon">🔍</div><div><div class="num">${data.searches}</div><div class="lbl">عدد عمليات البحث</div></div></div>
+    <div class="stat-card"><div class="icon">⚠️</div><div><div class="num">${data.failedSearches}</div><div class="lbl">عمليات البحث الفاشلة</div></div></div>
     <div class="stat-card"><div class="icon">🎓</div><div><div class="num">${data.totalStudents}</div><div class="lbl">إجمالي عدد الطلاب</div></div></div>
   `;
 
