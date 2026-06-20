@@ -1,5 +1,17 @@
-export async function onRequest(context) {
-  const url = new URL(context.request.url);
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+
+    if (url.pathname === "/api/search") {
+      return handleSearch(request, env);
+    }
+
+    return env.ASSETS.fetch(request);
+  },
+};
+
+async function handleSearch(request, env) {
+  const url = new URL(request.url);
   const studentId = url.searchParams.get("id")?.trim();
 
   const headers = {
@@ -12,7 +24,7 @@ export async function onRequest(context) {
   }
 
   try {
-    const { results } = await context.env.DB.prepare(
+    const { results } = await env.DB.prepare(
       "SELECT * FROM students WHERE id = ? OR LOWER(id) = LOWER(?)"
     ).bind(studentId, studentId).all();
 
