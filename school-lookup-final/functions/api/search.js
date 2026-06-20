@@ -1,3 +1,5 @@
+import { rateLimit, clientKey, tooManyRequests } from "../_utils/rateLimit.js";
+
 export async function onRequest(context) {
   const url = new URL(context.request.url);
   const studentId = url.searchParams.get("id")?.trim();
@@ -14,6 +16,9 @@ export async function onRequest(context) {
   if (!context.env.DB) {
     return new Response(JSON.stringify({ error: "db_not_bound" }), { status: 500, headers });
   }
+
+  const allowed = await rateLimit(context.env, clientKey(context.request, "search"), 20, 60_000);
+  if (!allowed) return tooManyRequests();
 
   context.waitUntil(
     context.env.DB.prepare(
