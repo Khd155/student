@@ -24,7 +24,7 @@ body{
   border:1px solid rgba(255,255,255,.25);border-radius:18px;
   padding:32px 28px;width:100%;max-width:340px;text-align:center;
 }
-.login-card h1{color:#fff;font-size:18px;margin-bottom:18px;font-weight:700}
+.login-card h1{color:#fff;font-size:18px;margin-bottom:18px;font-weight:700;letter-spacing:-.01em}
 .login-card input{
   width:100%;height:48px;border-radius:10px;border:1.5px solid rgba(255,255,255,.3);
   background:rgba(255,255,255,.15);color:#fff;text-align:center;font-size:16px;
@@ -33,7 +33,7 @@ body{
 .login-card input::placeholder{color:rgba(255,255,255,.6)}
 .login-card button{
   width:100%;height:46px;border-radius:10px;border:none;cursor:pointer;
-  background:#fff;color:#2d6a73;font-weight:700;font-size:15px;
+  background:#fff;color:#2d6a73;font-weight:700;font-size:14px;
   transition:.2s;
 }
 .login-card button:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.15)}
@@ -47,11 +47,11 @@ body{
   display:flex;align-items:center;justify-content:space-between;
   padding:16px 26px;position:sticky;top:0;z-index:10;
 }
-.topbar h1{font-size:17px;font-weight:700;color:#fff}
+.topbar h1{font-size:18px;font-weight:700;color:#fff;letter-spacing:-.01em}
 .topbar-right{display:flex;align-items:center;gap:14px}
 .logout-btn{
   background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);border-radius:9px;padding:9px 18px;
-  cursor:pointer;font-size:13px;color:#fff;font-weight:600;transition:.15s;
+  cursor:pointer;font-size:13px;color:#fff;font-weight:700;transition:.15s;
 }
 .logout-btn:hover{background:rgba(255,255,255,.25)}
 
@@ -61,7 +61,7 @@ body{
   padding:10px 26px;position:sticky;top:65px;z-index:9;
 }
 .tab-btn{
-  background:none;border:none;cursor:pointer;font-size:13.5px;font-weight:600;
+  background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;
   color:rgba(255,255,255,.65);padding:10px 18px;border-radius:9px;
   transition:.15s;display:flex;align-items:center;gap:7px;
 }
@@ -72,8 +72,8 @@ body{
 .page.active{display:block}
 
 .section-head{margin-bottom:18px}
-.section-head h2{font-size:18px;font-weight:800;color:#fff}
-.section-head p{font-size:12.5px;color:rgba(255,255,255,.7);margin-top:3px}
+.section-head h2{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.01em}
+.section-head p{font-size:13px;color:rgba(255,255,255,.7);margin-top:3px}
 
 /* ── STATS ── */
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
@@ -93,29 +93,29 @@ body{
 .stat-card.c-amber .icon{background:#fef3c7}
 .stat-card.c-purple .icon{background:#f3e8ff}
 .stat-card .num{font-size:28px;font-weight:800;color:#0f172a;line-height:1.15}
-.stat-card .lbl{font-size:12.5px;color:#64748b;margin-top:2px;font-weight:600}
+.stat-card .lbl{font-size:13px;color:#64748b;margin-top:2px;font-weight:600}
 
 .panel{background:#fff;border-radius:18px;padding:24px;box-shadow:0 16px 48px rgba(0,0,0,.18);margin-bottom:22px}
-.panel h2{font-size:15px;margin-bottom:18px;font-weight:700;color:#0f172a}
+.panel h2{font-size:16px;margin-bottom:18px;font-weight:700;color:#0f172a}
 
 .bar-row{display:flex;align-items:center;gap:14px;margin-bottom:14px}
 .bar-row:last-child{margin-bottom:0}
 .bar-label{width:64px;flex-shrink:0;font-size:13px;font-weight:700;color:#334155}
 .bar-track{flex:1;height:12px;background:#f1f5f9;border-radius:8px;overflow:hidden}
 .bar-fill{height:100%;border-radius:8px;background:linear-gradient(120deg,#4a7fa5,#4aad96)}
-.bar-count{width:38px;flex-shrink:0;text-align:left;font-size:13.5px;font-weight:800;color:#1d4ed8}
+.bar-count{width:38px;flex-shrink:0;text-align:left;font-size:13px;font-weight:800;color:#1d4ed8}
 
 /* ── STUDENTS ── */
 .toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
 .toolbar input{flex:1;min-width:180px;height:42px;border-radius:10px;border:1px solid #e2e8f0;padding:0 14px;font-size:14px;outline:none;transition:.15s}
 .toolbar input:focus{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.1)}
-.toolbar button{height:42px;padding:0 18px;border-radius:10px;border:none;cursor:pointer;font-size:13.5px;font-weight:700;transition:.15s}
+.toolbar button{height:42px;padding:0 18px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-weight:700;transition:.15s}
 .btn-primary{background:linear-gradient(120deg,#4a7fa5,#4aad96);color:#fff}
 .btn-primary:hover{filter:brightness(1.08)}
 .btn-secondary{background:#f1f5f9;color:#334155}
 .btn-secondary:hover{background:#e2e8f0}
 
-table.students{width:100%;border-collapse:collapse;font-size:13.5px}
+table.students{width:100%;border-collapse:collapse;font-size:14px}
 table.students th,table.students td{padding:11px 10px;text-align:right;border-bottom:1px solid #f1f5f9;white-space:nowrap}
 table.students th{color:#64748b;font-weight:600;background:#f8fafc;font-size:12px}
 table.students tr:hover td{background:#f8fafc}
@@ -127,7 +127,7 @@ table.students tr:hover td{background:#f8fafc}
 .row-actions .del{color:#dc2626}
 .row-actions .del:hover{background:#fee2e2}
 .table-wrap{overflow-x:auto;border-radius:12px;border:1px solid #f1f5f9}
-.empty-state{text-align:center;padding:40px 0;color:#94a3b8;font-size:13.5px}
+.empty-state{text-align:center;padding:40px 0;color:#94a3b8;font-size:13px}
 
 /* modal */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);align-items:center;justify-content:center;z-index:50;backdrop-filter:blur(2px)}
