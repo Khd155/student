@@ -16,7 +16,7 @@ body {
   flex-direction:column;
   align-items:center;
   justify-content:flex-start;
-  padding:48px 16px 60px;
+  padding:48px 16px 24px;
 }
 
 /* ── MOE LOGO ── */
@@ -219,6 +219,19 @@ body {
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ── FOOTER ── */
+.site-footer {
+  width:100%;
+  text-align:center;
+  margin-top:auto;
+  padding-top:40px;
+}
+.site-footer p {
+  font-size:13px;
+  font-weight:600;
+  color:rgba(255,255,255,.75);
+}
+
 @media(max-width:440px){
   .card{padding:24px 16px 20px}
   .result-body{padding:14px 14px 16px}
@@ -259,6 +272,11 @@ body {
 
 <!-- RESULTS -->
 <div class="result-wrap" id="resultWrap" style="display:none"></div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <p>إدارة مدرسة عبدالرحمن بن أبي بكر الابتدائية</p>
+</footer>
 
 <script>
 function getInitials(n){
