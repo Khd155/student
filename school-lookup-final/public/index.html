@@ -16,7 +16,7 @@ body {
   flex-direction:column;
   align-items:center;
   justify-content:flex-start;
-  padding:48px 16px 60px;
+  padding:48px 16px 24px;
 }
 
 /* ── MOE LOGO ── */
@@ -219,6 +219,19 @@ body {
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ── FOOTER ── */
+.site-footer {
+  width:100%;
+  text-align:center;
+  margin-top:auto;
+  padding-top:40px;
+}
+.site-footer p {
+  font-size:13px;
+  font-weight:600;
+  color:rgba(255,255,255,.75);
+}
+
 @media(max-width:440px){
   .card{padding:24px 16px 20px}
   .result-body{padding:14px 14px 16px}
@@ -232,37 +245,9 @@ body {
 <!-- MOE HEADER -->
 <div class="moe-header">
   <div class="moe-logo-wrap">
-    <svg class="moe-logo" width="100" height="48" viewBox="0 0 200 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="16" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="40" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="64" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="88" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="112" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="136" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="160" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="184" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="28" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="52" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="76" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="100" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="124" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="148" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="172" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="40" cy="60" r="7" fill="white" opacity="0.75"/>
-      <circle cx="64" cy="60" r="7" fill="white" opacity="0.75"/>
-      <circle cx="88" cy="60" r="7" fill="white" opacity="0.75"/>
-      <circle cx="112" cy="60" r="7" fill="white" opacity="0.75"/>
-      <circle cx="136" cy="60" r="7" fill="white" opacity="0.75"/>
-      <circle cx="160" cy="60" r="7" fill="white" opacity="0.75"/>
-      <circle cx="64" cy="82" r="7" fill="white" opacity="0.6"/>
-      <circle cx="88" cy="82" r="7" fill="white" opacity="0.6"/>
-      <circle cx="112" cy="82" r="7" fill="white" opacity="0.6"/>
-      <circle cx="136" cy="82" r="7" fill="white" opacity="0.6"/>
-    </svg>
+    <img class="moe-logo" src="/MOH.png" alt="وزارة التعليم" width="220">
   </div>
-  <div class="moe-name">وزارة التعـليم</div>
-  <div class="moe-name-en">Ministry of Education</div>
-  <div class="moe-region">الإدارة العامة للتعليم بمنطقة مكة المكرمة</div>
+  <div class="moe-region">الإدارة العامة للتعليم بمنطقة مكة المكرمة بمحافظة جدة</div>
 </div>
 
 <div class="school-name">مدرسة عبدالرحمن بن أبي بكر الابتدائية</div>
@@ -276,8 +261,9 @@ body {
       id="idInput"
       class="id-input"
       placeholder="أدخل رقم الهوية"
-      inputmode="text"
-      maxlength="20"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      maxlength="10"
       autocomplete="off"
     />
     <button class="search-btn" onclick="doSearch()" aria-label="بحث">🔍</button>
@@ -287,6 +273,11 @@ body {
 
 <!-- RESULTS -->
 <div class="result-wrap" id="resultWrap" style="display:none"></div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <p>إدارة مدرسة عبدالرحمن بن أبي بكر الابتدائية</p>
+</footer>
 
 <script>
 function getInitials(n){
@@ -357,6 +348,9 @@ async function doSearch(){
 
 document.getElementById('idInput').addEventListener('keydown',e=>{
   if(e.key==='Enter') doSearch();
+});
+document.getElementById('idInput').addEventListener('input',e=>{
+  e.target.value=e.target.value.replace(/\D/g,'').slice(0,10);
 });
 </script>
 </body>
