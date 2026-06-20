@@ -319,6 +319,11 @@ async function doSearch(){
     return;
   }
 
+  if(!/^[0-9]{10}$/.test(q)){
+    wrap.innerHTML=`<div class="state-card"><div class="state-icon">⚠️</div><div class="state-title">رقم الهوية غير صحيح</div><div class="state-sub">يجب أن يتكون رقم الهوية من 10 أرقام فقط</div></div>`;
+    return;
+  }
+
   wrap.innerHTML=`<div class="loading"><div class="spinner"></div>جاري البحث...</div>`;
 
   try {

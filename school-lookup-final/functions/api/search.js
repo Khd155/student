@@ -14,6 +14,10 @@ export async function onRequest(context) {
     return new Response(JSON.stringify({ error: "missing_id" }), { status: 400, headers });
   }
 
+  if (!/^[0-9]{10}$/.test(studentId)) {
+    return new Response(JSON.stringify({ error: "invalid_id" }), { status: 400, headers });
+  }
+
   if (!context.env.DB) {
     return new Response(JSON.stringify({ error: "db_not_bound" }), { status: 500, headers });
   }
@@ -33,18 +37,16 @@ export async function onRequest(context) {
     ).bind(studentId, studentId).all();
 
     if (!results || results.length === 0) {
-      if (/^[0-9]{10}$/.test(studentId)) {
-        context.waitUntil(
-          context.env.DB.prepare(
-            "INSERT INTO stats(key,value) VALUES('failed_searches',1) ON CONFLICT(key) DO UPDATE SET value=value+1"
-          ).run().catch(() => {})
-        );
-        context.waitUntil(
-          context.env.DB.prepare(
-            "INSERT INTO failed_searches_log (attempted_id, created_at) VALUES (?, ?)"
-          ).bind(studentId, Date.now()).run().catch(() => {})
-        );
-      }
+      context.waitUntil(
+        context.env.DB.prepare(
+          "INSERT INTO stats(key,value) VALUES('failed_searches',1) ON CONFLICT(key) DO UPDATE SET value=value+1"
+        ).run().catch(() => {})
+      );
+      context.waitUntil(
+        context.env.DB.prepare(
+          "INSERT INTO failed_searches_log (attempted_id, created_at) VALUES (?, ?)"
+        ).bind(studentId, Date.now()).run().catch(() => {})
+      );
       context.waitUntil(logActivity(context.env, context.request, "search_failed", studentId).catch(() => {}));
       return new Response(JSON.stringify({ found: false }), { status: 200, headers });
     }
