@@ -1,4 +1,5 @@
 import { rateLimit, clientKey, tooManyRequests } from "../_utils/rateLimit.js";
+import { logActivity } from "../_utils/activityLog.js";
 
 export async function onRequest(context) {
   const url = new URL(context.request.url);
@@ -44,9 +45,11 @@ export async function onRequest(context) {
           ).bind(studentId, Date.now()).run().catch(() => {})
         );
       }
+      context.waitUntil(logActivity(context.env, context.request, "search_failed", studentId).catch(() => {}));
       return new Response(JSON.stringify({ found: false }), { status: 200, headers });
     }
 
+    context.waitUntil(logActivity(context.env, context.request, "search_success", studentId).catch(() => {}));
     return new Response(JSON.stringify({ found: true, students: results }), { status: 200, headers });
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });

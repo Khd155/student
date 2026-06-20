@@ -1,4 +1,5 @@
 import { requireAdmin, unauthorized } from "../../_utils/auth.js";
+import { logActivity } from "../../_utils/activityLog.js";
 
 export async function onRequestGet(context) {
   if (!(await requireAdmin(context))) return unauthorized();
@@ -32,6 +33,7 @@ export async function onRequestPost(context) {
     "INSERT INTO students (id,name,seat,committee,location,grade,class) VALUES (?,?,?,?,?,?,?)"
   ).bind(body.id, body.name, body.seat || "", body.committee || "", body.location || "", body.grade || "", body.class || "").run();
 
+  context.waitUntil(logActivity(env, request, "student_created", `${body.id} - ${body.name}`).catch(() => {}));
   return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
 }
 
@@ -50,6 +52,7 @@ export async function onRequestPut(context) {
     "UPDATE students SET name=?, seat=?, committee=?, location=?, grade=?, class=? WHERE id=?"
   ).bind(body.name, body.seat, body.committee, body.location, body.grade, body.class, body.id).run();
 
+  context.waitUntil(logActivity(env, request, "student_updated", `${body.id} - ${body.name}`).catch(() => {}));
   return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
 }
 
@@ -66,5 +69,6 @@ export async function onRequestDelete(context) {
   }
 
   await env.DB.prepare("DELETE FROM students WHERE id=?").bind(id).run();
+  context.waitUntil(logActivity(env, request, "student_deleted", id).catch(() => {}));
   return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
 }

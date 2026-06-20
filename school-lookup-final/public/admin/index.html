@@ -165,6 +165,7 @@ table.students tr:hover td{background:#f8fafc}
 
   <div class="tabs">
     <button class="tab-btn active" id="tabBtnStats" onclick="switchTab('stats')">📊 الإحصائيات</button>
+    <button class="tab-btn" id="tabBtnActivity" onclick="switchTab('activity')">📜 السجل الشامل</button>
     <button class="tab-btn" id="tabBtnStudents" onclick="switchTab('students')">👥 الطلاب</button>
   </div>
 
@@ -184,6 +185,21 @@ table.students tr:hover td{background:#f8fafc}
         <table class="students">
           <thead><tr><th>رقم الهوية المُدخل</th><th>التاريخ والوقت</th></tr></thead>
           <tbody id="failedSearchesBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="pageActivity">
+    <div class="section-head">
+      <h2>سجل العمليات الشامل</h2>
+      <p>آخر 300 عملية حدثت في الموقع: زيارات، عمليات بحث، تسجيل دخول، وإدارة الطلاب</p>
+    </div>
+    <div class="panel">
+      <div class="table-wrap">
+        <table class="students">
+          <thead><tr><th>الحدث</th><th>التفاصيل</th><th>العنوان</th><th>التاريخ والوقت</th></tr></thead>
+          <tbody id="activityLogBody"></tbody>
         </table>
       </div>
     </div>
@@ -276,9 +292,12 @@ function showDash(){
 
 function switchTab(tab){
   document.getElementById('pageStats').classList.toggle('active', tab === 'stats');
+  document.getElementById('pageActivity').classList.toggle('active', tab === 'activity');
   document.getElementById('pageStudents').classList.toggle('active', tab === 'students');
   document.getElementById('tabBtnStats').classList.toggle('active', tab === 'stats');
+  document.getElementById('tabBtnActivity').classList.toggle('active', tab === 'activity');
   document.getElementById('tabBtnStudents').classList.toggle('active', tab === 'students');
+  if (tab === 'activity') loadActivityLog();
 }
 
 async function loadStats(){
@@ -320,6 +339,42 @@ async function loadFailedSearches(){
     <tr>
       <td style="direction:ltr;text-align:right">${a.attempted_id}</td>
       <td>${new Date(a.created_at).toLocaleString('ar-SA')}</td>
+    </tr>
+  `).join('');
+}
+
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+const ACTIVITY_LABELS = {
+  page_view: '👁️ زيارة الصفحة',
+  search_success: '🔍 بحث ناجح',
+  search_failed: '⚠️ بحث فاشل',
+  login_success: '🔑 تسجيل دخول ناجح',
+  login_failed: '⛔ تسجيل دخول فاشل',
+  student_created: '➕ إضافة طالب',
+  student_updated: '✏️ تعديل طالب',
+  student_deleted: '🗑️ حذف طالب',
+};
+
+async function loadActivityLog(){
+  const res = await fetch('/api/admin/activity-log');
+  if(!res.ok) return;
+  const data = await res.json();
+  const body = document.getElementById('activityLogBody');
+
+  if(!data.entries || data.entries.length === 0){
+    body.innerHTML = `<tr><td colspan="4"><div class="empty-state">لا توجد عمليات مسجلة</div></td></tr>`;
+    return;
+  }
+
+  body.innerHTML = data.entries.map(e => `
+    <tr>
+      <td>${ACTIVITY_LABELS[e.type] || escapeHtml(e.type)}</td>
+      <td style="direction:ltr;text-align:right">${escapeHtml(e.detail)}</td>
+      <td style="direction:ltr;text-align:right">${escapeHtml(e.ip)}</td>
+      <td>${new Date(e.created_at).toLocaleString('ar-SA')}</td>
     </tr>
   `).join('');
 }

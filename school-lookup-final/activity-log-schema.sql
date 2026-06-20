@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS activity_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL,
+  detail TEXT,
+  ip TEXT,
+  created_at INTEGER NOT NULL
+);
