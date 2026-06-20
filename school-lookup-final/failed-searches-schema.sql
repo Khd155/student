@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS failed_searches_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  attempted_id TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);

@@ -178,6 +178,15 @@ table.students tr:hover td{background:#f8fafc}
       <h2>عدد الطلاب حسب الصف</h2>
       <div id="gradeBars"></div>
     </div>
+    <div class="panel">
+      <h2>آخر محاولات البحث الفاشلة</h2>
+      <div class="table-wrap">
+        <table class="students">
+          <thead><tr><th>رقم الهوية المُدخل</th><th>التاريخ والوقت</th></tr></thead>
+          <tbody id="failedSearchesBody"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <div class="page" id="pageStudents">
@@ -291,6 +300,27 @@ async function loadStats(){
       <div class="bar-track"><div class="bar-fill" style="width:${(g.count / maxCount * 100).toFixed(0)}%"></div></div>
       <div class="bar-count">${g.count}</div>
     </div>
+  `).join('');
+
+  loadFailedSearches();
+}
+
+async function loadFailedSearches(){
+  const res = await fetch('/api/admin/failed-searches');
+  if(!res.ok) return;
+  const data = await res.json();
+  const body = document.getElementById('failedSearchesBody');
+
+  if(!data.attempts || data.attempts.length === 0){
+    body.innerHTML = `<tr><td colspan="2"><div class="empty-state">لا توجد محاولات فاشلة مسجلة</div></td></tr>`;
+    return;
+  }
+
+  body.innerHTML = data.attempts.map(a => `
+    <tr>
+      <td style="direction:ltr;text-align:right">${a.attempted_id}</td>
+      <td>${new Date(a.created_at).toLocaleString('ar-SA')}</td>
+    </tr>
   `).join('');
 }
 

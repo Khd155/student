@@ -32,11 +32,18 @@ export async function onRequest(context) {
     ).bind(studentId, studentId).all();
 
     if (!results || results.length === 0) {
-      context.waitUntil(
-        context.env.DB.prepare(
-          "INSERT INTO stats(key,value) VALUES('failed_searches',1) ON CONFLICT(key) DO UPDATE SET value=value+1"
-        ).run().catch(() => {})
-      );
+      if (/^[0-9]{10}$/.test(studentId)) {
+        context.waitUntil(
+          context.env.DB.prepare(
+            "INSERT INTO stats(key,value) VALUES('failed_searches',1) ON CONFLICT(key) DO UPDATE SET value=value+1"
+          ).run().catch(() => {})
+        );
+        context.waitUntil(
+          context.env.DB.prepare(
+            "INSERT INTO failed_searches_log (attempted_id, created_at) VALUES (?, ?)"
+          ).bind(studentId, Date.now()).run().catch(() => {})
+        );
+      }
       return new Response(JSON.stringify({ found: false }), { status: 200, headers });
     }
 
