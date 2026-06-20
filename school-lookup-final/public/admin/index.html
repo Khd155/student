@@ -56,43 +56,54 @@ body{
 .logout-btn:hover{background:rgba(255,255,255,.25)}
 
 .tabs{
-  display:flex;gap:6px;background:rgba(255,255,255,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  display:flex;gap:4px;background:rgba(255,255,255,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   border-bottom:1px solid rgba(255,255,255,.15);
-  padding:0 26px;position:sticky;top:65px;z-index:9;
+  padding:10px 26px;position:sticky;top:65px;z-index:9;
 }
 .tab-btn{
-  background:none;border:none;cursor:pointer;font-size:14px;font-weight:600;
-  color:rgba(255,255,255,.65);padding:15px 18px;border-bottom:3px solid transparent;
-  transition:.15s;
+  background:none;border:none;cursor:pointer;font-size:13.5px;font-weight:600;
+  color:rgba(255,255,255,.65);padding:10px 18px;border-radius:9px;
+  transition:.15s;display:flex;align-items:center;gap:7px;
 }
-.tab-btn:hover{color:#fff}
-.tab-btn.active{color:#fff;border-bottom-color:#fff}
+.tab-btn:hover{color:#fff;background:rgba(255,255,255,.08)}
+.tab-btn.active{color:#2d6a73;background:#fff}
 
-.page{display:none;max-width:1100px;margin:0 auto;padding:28px 20px 60px}
+.page{display:none;max-width:1100px;margin:0 auto;padding:30px 20px 60px}
 .page.active{display:block}
 
+.section-head{margin-bottom:18px}
+.section-head h2{font-size:18px;font-weight:800;color:#fff}
+.section-head p{font-size:12.5px;color:rgba(255,255,255,.7);margin-top:3px}
+
 /* ── STATS ── */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:22px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
 .stat-card{
-  background:rgba(255,255,255,.12);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-radius:16px;padding:22px;border:1px solid rgba(255,255,255,.25);
+  background:#fff;border-radius:16px;padding:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.1);
   display:flex;align-items:center;gap:14px;
+  transition:.2s;
 }
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(0,0,0,.14)}
 .stat-card .icon{
-  width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;
-  font-size:20px;flex-shrink:0;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
+  width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+  font-size:21px;flex-shrink:0;
 }
-.stat-card .num{font-size:27px;font-weight:800;color:#fff;line-height:1.1}
-.stat-card .lbl{font-size:12.5px;color:rgba(255,255,255,.75);margin-top:3px}
+.stat-card.c-blue .icon{background:#dbeafe}
+.stat-card.c-green .icon{background:#dcfce7}
+.stat-card.c-amber .icon{background:#fef3c7}
+.stat-card.c-purple .icon{background:#f3e8ff}
+.stat-card .num{font-size:28px;font-weight:800;color:#0f172a;line-height:1.15}
+.stat-card .lbl{font-size:12.5px;color:#64748b;margin-top:2px;font-weight:600}
 
-.panel{background:#fff;border-radius:18px;padding:22px;box-shadow:0 16px 48px rgba(0,0,0,.18);margin-bottom:22px}
-.panel h2{font-size:15px;margin-bottom:16px;font-weight:700;color:#0f172a}
+.panel{background:#fff;border-radius:18px;padding:24px;box-shadow:0 16px 48px rgba(0,0,0,.18);margin-bottom:22px}
+.panel h2{font-size:15px;margin-bottom:18px;font-weight:700;color:#0f172a}
 
-.grade-table{width:100%;border-collapse:collapse;font-size:13.5px}
-.grade-table th,.grade-table td{padding:10px 12px;text-align:right;border-bottom:1px solid #f1f5f9}
-.grade-table th{color:#64748b;font-weight:600;font-size:12.5px}
-.grade-table tr:last-child td{border-bottom:none}
-.grade-table td:last-child{font-weight:700;color:#1d4ed8}
+.bar-row{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.bar-row:last-child{margin-bottom:0}
+.bar-label{width:64px;flex-shrink:0;font-size:13px;font-weight:700;color:#334155}
+.bar-track{flex:1;height:12px;background:#f1f5f9;border-radius:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:8px;background:linear-gradient(120deg,#4a7fa5,#4aad96)}
+.bar-count{width:38px;flex-shrink:0;text-align:left;font-size:13.5px;font-weight:800;color:#1d4ed8}
 
 /* ── STUDENTS ── */
 .toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
@@ -150,21 +161,28 @@ table.students tr:hover td{background:#f8fafc}
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" id="tabBtnStats" onclick="switchTab('stats')">الإحصائيات</button>
-    <button class="tab-btn" id="tabBtnStudents" onclick="switchTab('students')">الطلاب</button>
+    <button class="tab-btn active" id="tabBtnStats" onclick="switchTab('stats')">📊 الإحصائيات</button>
+    <button class="tab-btn" id="tabBtnStudents" onclick="switchTab('students')">👥 الطلاب</button>
   </div>
 
   <div class="page active" id="pageStats">
+    <div class="section-head">
+      <h2>نظرة عامة</h2>
+      <p>ملخص استخدام الموقع وبيانات الطلاب</p>
+    </div>
     <div class="stat-grid" id="statGrid"></div>
     <div class="panel">
       <h2>عدد الطلاب حسب الصف</h2>
-      <table class="grade-table" id="gradeTable"></table>
+      <div id="gradeBars"></div>
     </div>
   </div>
 
   <div class="page" id="pageStudents">
-    <div class="panel">
+    <div class="section-head">
       <h2>إدارة الطلاب</h2>
+      <p>إضافة، تعديل، أو حذف بيانات الطلاب</p>
+    </div>
+    <div class="panel">
       <div class="toolbar">
         <input type="text" id="searchBox" placeholder="بحث بالاسم أو رقم الهوية">
         <button class="btn-secondary" onclick="loadStudents()">بحث</button>
@@ -257,16 +275,20 @@ async function loadStats(){
   const data = await res.json();
 
   document.getElementById('statGrid').innerHTML = `
-    <div class="stat-card"><div class="icon">👁️</div><div><div class="num">${data.pageViews}</div><div class="lbl">عدد زيارات الموقع</div></div></div>
-    <div class="stat-card"><div class="icon">🔍</div><div><div class="num">${data.searches}</div><div class="lbl">عدد عمليات البحث</div></div></div>
-    <div class="stat-card"><div class="icon">⚠️</div><div><div class="num">${data.failedSearches}</div><div class="lbl">عمليات البحث الفاشلة</div></div></div>
-    <div class="stat-card"><div class="icon">🎓</div><div><div class="num">${data.totalStudents}</div><div class="lbl">إجمالي عدد الطلاب</div></div></div>
+    <div class="stat-card c-blue"><div class="icon">👁️</div><div><div class="num">${data.pageViews}</div><div class="lbl">عدد زيارات الموقع</div></div></div>
+    <div class="stat-card c-green"><div class="icon">🔍</div><div><div class="num">${data.searches}</div><div class="lbl">عدد عمليات البحث</div></div></div>
+    <div class="stat-card c-amber"><div class="icon">⚠️</div><div><div class="num">${data.failedSearches}</div><div class="lbl">عمليات البحث الفاشلة</div></div></div>
+    <div class="stat-card c-purple"><div class="icon">🎓</div><div><div class="num">${data.totalStudents}</div><div class="lbl">إجمالي عدد الطلاب</div></div></div>
   `;
 
-  document.getElementById('gradeTable').innerHTML = `
-    <tr><th>الصف</th><th>عدد الطلاب</th></tr>
-    ${data.byGrade.map(g => `<tr><td>${g.grade}</td><td>${g.count}</td></tr>`).join('')}
-  `;
+  const maxCount = Math.max(...data.byGrade.map(g => g.count), 1);
+  document.getElementById('gradeBars').innerHTML = data.byGrade.map(g => `
+    <div class="bar-row">
+      <div class="bar-label">${g.grade}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(g.count / maxCount * 100).toFixed(0)}%"></div></div>
+      <div class="bar-count">${g.count}</div>
+    </div>
+  `).join('');
 }
 
 async function loadStudents(){
