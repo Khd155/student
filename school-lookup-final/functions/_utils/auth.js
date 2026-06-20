@@ -25,6 +25,8 @@ function getCookie(request, name) {
 }
 
 export async function requireAdmin(context) {
+  if (!context.env.DB) return false;
+
   const token = getCookie(context.request, SESSION_COOKIE);
   if (!token) return false;
 

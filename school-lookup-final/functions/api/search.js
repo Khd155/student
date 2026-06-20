@@ -11,6 +11,10 @@ export async function onRequest(context) {
     return new Response(JSON.stringify({ error: "missing_id" }), { status: 400, headers });
   }
 
+  if (!context.env.DB) {
+    return new Response(JSON.stringify({ error: "db_not_bound" }), { status: 500, headers });
+  }
+
   context.waitUntil(
     context.env.DB.prepare(
       "INSERT INTO stats(key,value) VALUES('searches',1) ON CONFLICT(key) DO UPDATE SET value=value+1"
