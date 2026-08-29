@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>استعلام الطلاب عن الفصول</title>
+<title>استعلام لجان الاختبارات</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 
@@ -269,7 +269,7 @@ body {
 
 <!-- SEARCH CARD -->
 <div class="card">
-  <div class="card-title">الاستعلام عن الفصل الدراسي</div>
+  <div class="card-title">الاستعلام عن لجنة الاختبار</div>
   <div class="input-row">
     <input
       type="text"
@@ -328,13 +328,25 @@ async function doSearch(){
       <div class="result-body">
         <div class="info-grid">
           <div class="info-item accent">
+            <div class="info-label">📋 اللجنة</div>
+            <div class="info-value">اللجنة ${s.committee}</div>
+          </div>
+          <div class="info-item accent">
+            <div class="info-label">📍 مقر اللجنة</div>
+            <div class="info-value">${s.location}</div>
+          </div>
+          <div class="info-item">
             <div class="info-label">📚 الصف</div>
             <div class="info-value">${s.grade}</div>
           </div>
-          <div class="info-item accent">
+          <div class="info-item">
             <div class="info-label">🚪 الفصل</div>
             <div class="info-value">فصل ${s.class}</div>
           </div>
+        </div>
+        <div class="seat-row">
+          <span class="seat-label">🎫 رقم الجلوس</span>
+          <span class="seat-num">${s.seat}</span>
         </div>
       </div>
     </div>`;
