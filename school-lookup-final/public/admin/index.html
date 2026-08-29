@@ -761,7 +761,8 @@ async function confirmImport() {
     loadGradeOptions();
     reloadStudents(1);
   } catch (e) {
-    errEl.textContent = 'حدث خطأ أثناء الاستيراد، حاول مرة أخرى';
+    const detail = e.data && e.data.message ? ` (${e.data.message})` : '';
+    errEl.textContent = 'حدث خطأ أثناء الاستيراد، حاول مرة أخرى' + detail;
   } finally {
     btn.disabled = false;
     document.getElementById('confirmImportLabel').textContent = 'بدء الاستيراد وحفظ البيانات';

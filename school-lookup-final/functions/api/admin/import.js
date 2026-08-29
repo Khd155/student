@@ -1,6 +1,9 @@
 import { jsonResponse, requireAdmin, logActivity, clientIp } from "./_auth.js";
 
-const CHUNK_SIZE = 100;
+// D1's Workers binding caps bound parameters at 100 per statement.
+// Each row binds 5 params (id, name, grade, class, phone), so keep a
+// safe margin under 100 / 5 = 20 rows per INSERT.
+const CHUNK_SIZE = 15;
 
 function buildInsertStatement(env, rows) {
   const placeholders = rows.map(() => "(?, ?, ?, ?, ?)").join(", ");
@@ -62,7 +65,11 @@ export async function onRequestPost(context) {
     statements.push(buildInsertStatement(context.env, cleanRows.slice(i, i + CHUNK_SIZE)));
   }
 
-  await context.env.DB.batch(statements);
+  try {
+    await context.env.DB.batch(statements);
+  } catch (err) {
+    return jsonResponse({ error: "db_error", message: err.message }, 500);
+  }
 
   await logActivity(
     context.env,
