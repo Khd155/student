@@ -5,6 +5,39 @@ CREATE TABLE IF NOT EXISTS students (
   class TEXT,
   phone TEXT
 );
+
+-- Per (grade, class) toggle controlling whether students in that class can
+-- be looked up on the public site. Missing rows default to enabled.
+CREATE TABLE IF NOT EXISTS class_visibility (
+  grade TEXT NOT NULL,
+  class TEXT NOT NULL,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  PRIMARY KEY (grade, class)
+);
+
+-- Admin panel session tokens, created on login and checked on every
+-- /api/admin/* request.
+CREATE TABLE IF NOT EXISTS admin_sessions (
+  token TEXT PRIMARY KEY,
+  expires_at INTEGER NOT NULL
+);
+
+-- Fixed-window rate limiting (used for admin login attempts).
+CREATE TABLE IF NOT EXISTS rate_limits (
+  key TEXT PRIMARY KEY,
+  count INTEGER NOT NULL DEFAULT 0,
+  window_start INTEGER NOT NULL DEFAULT 0
+);
+
+-- Admin action audit trail (logins, imports, edits, deletes, toggles).
+CREATE TABLE IF NOT EXISTS activity_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL,
+  detail TEXT,
+  ip TEXT,
+  created_at INTEGER NOT NULL
+);
+
 INSERT INTO students (id,name,grade,class,phone) VALUES
 ('4146571502','احمد مشتاق احمد عامر','الثالث الابتدائي','1','966545465488'),
 ('4525718328','أيمن بدر محمد حسن الجندي','الثالث الابتدائي','1','966561229170'),

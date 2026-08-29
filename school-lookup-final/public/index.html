@@ -294,6 +294,12 @@ function getInitials(n){
   return w.length>=2?w[0][0]+w[1][0]:w[0].slice(0,2);
 }
 
+function esc(s){
+  const d=document.createElement('div');
+  d.textContent=String(s ?? '');
+  return d.innerHTML;
+}
+
 async function doSearch(){
   const q=document.getElementById('idInput').value.trim();
   const wrap=document.getElementById('resultWrap');
@@ -310,8 +316,13 @@ async function doSearch(){
     const res = await fetch(`/api/search?id=${encodeURIComponent(q)}`);
     const data = await res.json();
 
+    if(data.disabled){
+      wrap.innerHTML=`<div class="state-card"><div class="state-icon">🚫</div><div class="state-title">لم يتم إتاحة الاستعلام لهذا الصف حالياً</div><div class="state-sub">يرجى المحاولة لاحقاً أو التواصل مع إدارة المدرسة</div></div>`;
+      return;
+    }
+
     if(!data.found){
-      wrap.innerHTML=`<div class="state-card"><div class="state-icon">❌</div><div class="state-title">لا توجد نتيجة</div><div class="state-sub">لم يُعثر على طالب برقم الهوية: <strong style="color:#fff">${q}</strong></div></div>`;
+      wrap.innerHTML=`<div class="state-card"><div class="state-icon">❌</div><div class="state-title">لا توجد نتيجة</div><div class="state-sub">لم يُعثر على طالب برقم الهوية: <strong style="color:#fff">${esc(q)}</strong></div></div>`;
       return;
     }
 
@@ -319,21 +330,21 @@ async function doSearch(){
     wrap.innerHTML=`
     <div class="result-card">
       <div class="result-top">
-        <div class="avatar">${getInitials(s.name)}</div>
+        <div class="avatar">${esc(getInitials(s.name))}</div>
         <div>
-          <div class="student-name">${s.name}</div>
-          <span class="student-id-lbl">رقم الهوية: ${s.id}</span>
+          <div class="student-name">${esc(s.name)}</div>
+          <span class="student-id-lbl">رقم الهوية: ${esc(s.id)}</span>
         </div>
       </div>
       <div class="result-body">
         <div class="info-grid">
           <div class="info-item accent">
             <div class="info-label">📚 الصف</div>
-            <div class="info-value">${s.grade}</div>
+            <div class="info-value">${esc(s.grade)}</div>
           </div>
           <div class="info-item accent">
             <div class="info-label">🚪 الفصل</div>
-            <div class="info-value">فصل ${s.class}</div>
+            <div class="info-value">فصل ${esc(s.class)}</div>
           </div>
         </div>
       </div>
