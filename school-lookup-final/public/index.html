@@ -11,11 +11,9 @@
 *{box-sizing:border-box;margin:0;padding:0}
 
 :root{
-  --navy:#0F172A;
-  --emerald:#064E3B;
   --emerald-bright:#10B981;
-  --glass:rgba(255,255,255,.07);
-  --glass-border:rgba(255,255,255,.14);
+  --glass:rgba(255,255,255,.12);
+  --glass-border:rgba(255,255,255,.25);
 }
 
 body{
@@ -23,11 +21,7 @@ body{
   font-family:'Tajawal','Segoe UI',Tahoma,sans-serif;
   direction:rtl;
   color:#fff;
-  background:
-    radial-gradient(900px 500px at 15% -5%, rgba(16,185,129,.25), transparent 60%),
-    radial-gradient(700px 500px at 100% 10%, rgba(59,130,246,.14), transparent 55%),
-    radial-gradient(800px 600px at 50% 120%, rgba(16,185,129,.18), transparent 60%),
-    linear-gradient(160deg, var(--navy) 0%, #0b2b22 48%, var(--emerald) 100%);
+  background: linear-gradient(120deg, #4a7fa5 0%, #4aad96 100%);
   background-attachment:fixed;
   display:flex;
   flex-direction:column;
@@ -38,9 +32,9 @@ body{
 }
 
 /* ambient glow blobs */
-.glow{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;opacity:.55}
-.glow-1{width:420px;height:420px;background:#10B981;top:-140px;right:-120px}
-.glow-2{width:360px;height:360px;background:#1D4ED8;bottom:-100px;left:-100px;opacity:.3}
+.glow{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;opacity:.25}
+.glow-1{width:420px;height:420px;background:#ffffff;top:-160px;right:-140px}
+.glow-2{width:360px;height:360px;background:#ffffff;bottom:-120px;left:-120px;opacity:.12}
 
 .content{position:relative;z-index:1;width:100%;display:flex;flex-direction:column;align-items:center}
 
@@ -249,7 +243,7 @@ body{
     <div class="input-row">
       <div class="input-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <input type="text" id="idInput" class="id-input" placeholder="أدخل رقم الهوية" inputmode="text" maxlength="20" autocomplete="off">
+        <input type="text" id="idInput" class="id-input" placeholder="أدخل رقم الهوية" inputmode="numeric" pattern="[0-9]*" maxlength="20" autocomplete="off">
       </div>
       <button class="search-btn" id="searchBtn" onclick="doSearch()" aria-label="بحث">
         <svg id="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -399,6 +393,10 @@ async function doSearch(){
     setLoading(false);
   }
 }
+
+document.getElementById('idInput').addEventListener('input', e => {
+  e.target.value = e.target.value.replace(/[^0-9]/g, '');
+});
 
 document.getElementById('idInput').addEventListener('keydown', e => {
   if(e.key === 'Enter') doSearch();
