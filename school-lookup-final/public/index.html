@@ -4,358 +4,404 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>استعلام الطلاب عن الفصول</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 
-body {
+:root{
+  --navy:#0F172A;
+  --emerald:#064E3B;
+  --emerald-bright:#10B981;
+  --glass:rgba(255,255,255,.07);
+  --glass-border:rgba(255,255,255,.14);
+}
+
+body{
   min-height:100vh;
-  font-family:'Segoe UI',Tahoma,Arial,sans-serif;
+  font-family:'Tajawal','Segoe UI',Tahoma,sans-serif;
   direction:rtl;
-  background: linear-gradient(120deg, #4a7fa5 0%, #4aad96 100%);
+  color:#fff;
+  background:
+    radial-gradient(900px 500px at 15% -5%, rgba(16,185,129,.25), transparent 60%),
+    radial-gradient(700px 500px at 100% 10%, rgba(59,130,246,.14), transparent 55%),
+    radial-gradient(800px 600px at 50% 120%, rgba(16,185,129,.18), transparent 60%),
+    linear-gradient(160deg, var(--navy) 0%, #0b2b22 48%, var(--emerald) 100%);
+  background-attachment:fixed;
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:flex-start;
-  padding:48px 16px 60px;
+  padding:44px 16px 60px;
+  position:relative;
+  overflow-x:hidden;
 }
 
-/* ── MOE LOGO ── */
-.moe-header {
-  text-align:center;
-  margin-bottom:40px;
-}
-.moe-logo-wrap {
-  margin-bottom:14px;
-}
-.moe-logo {
-  display:inline-block;
-}
-/* SVG dots logo */
-.moe-name {
-  font-size:26px;
-  font-weight:300;
-  color:#fff;
-  letter-spacing:.04em;
-  margin-bottom:4px;
-}
-.moe-name-en {
-  font-size:13px;
-  color:rgba(255,255,255,.7);
-  letter-spacing:.08em;
-}
-.moe-region {
-  font-size:13px;
-  font-weight:700;
-  color:#fff;
-  margin-top:16px;
-  opacity:.9;
-}
+/* ambient glow blobs */
+.glow{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;opacity:.55}
+.glow-1{width:420px;height:420px;background:#10B981;top:-140px;right:-120px}
+.glow-2{width:360px;height:360px;background:#1D4ED8;bottom:-100px;left:-100px;opacity:.3}
 
-/* ── SCHOOL NAME ── */
-.school-name {
-  font-size:17px;
-  font-weight:700;
-  color:#fff;
-  margin-bottom:32px;
-  text-align:center;
-  opacity:.95;
-}
+.content{position:relative;z-index:1;width:100%;display:flex;flex-direction:column;align-items:center}
+
+/* ── HEADER ── */
+.header{text-align:center;margin-bottom:36px;max-width:480px}
+.logo-wrap{width:64px;height:64px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center}
+.logo-wrap img{width:100%;height:100%;object-fit:contain}
+.logo-fallback{width:100%;height:100%}
+
+.moe-line{font-size:15px;font-weight:500;color:rgba(255,255,255,.75);letter-spacing:.02em}
+.moe-line b{font-weight:800;color:#fff}
+.region-line{font-size:12px;font-weight:700;color:#6EE7B7;margin-top:8px;letter-spacing:.02em}
+.school-name{font-size:21px;font-weight:800;color:#fff;margin-top:16px;line-height:1.4}
 
 /* ── SEARCH CARD ── */
-.card {
-  background:rgba(255,255,255,.12);
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,.25);
-  border-radius:20px;
-  padding:32px 28px 28px;
+.search-card{
+  background:var(--glass);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--glass-border);
+  border-radius:24px;
+  padding:30px 24px;
   width:100%;
-  max-width:480px;
+  max-width:460px;
+  box-shadow:0 24px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
 }
-.card-title {
-  font-size:14px;
-  font-weight:600;
-  color:rgba(255,255,255,.8);
-  margin-bottom:10px;
-  text-align:center;
-}
-.input-row {
-  display:flex;
-  gap:10px;
-  margin-bottom:10px;
-}
-.id-input {
-  flex:1;
-  background:rgba(255,255,255,.15);
-  border:1.5px solid rgba(255,255,255,.3);
-  border-radius:12px;
-  padding:0 18px;
-  height:54px;
-  font-size:20px;
+.search-label{font-size:13px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:12px;text-align:center}
+.input-row{display:flex;gap:10px}
+.input-wrap{position:relative;flex:1}
+.input-wrap svg{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:rgba(255,255,255,.45)}
+.id-input{
+  width:100%;
+  background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(255,255,255,.16);
+  border-radius:14px;
+  padding:0 44px 0 16px;
+  height:56px;
+  font-size:18px;
   font-weight:700;
   color:#fff;
   direction:ltr;
   text-align:center;
-  letter-spacing:.06em;
+  letter-spacing:.05em;
   outline:none;
   transition:.2s;
-  font-family:'Courier New',monospace;
+  font-family:'Tajawal',monospace;
 }
-.id-input::placeholder {
-  color:rgba(255,255,255,.45);
-  font-size:13px;
-  font-weight:400;
-  letter-spacing:0;
-  font-family:'Segoe UI',sans-serif;
-}
-.id-input:focus {
-  background:rgba(255,255,255,.22);
-  border-color:rgba(255,255,255,.7);
-  box-shadow:0 0 0 4px rgba(255,255,255,.15);
-}
-.search-btn {
-  width:54px;
-  height:54px;
-  background:rgba(255,255,255,.2);
-  border:1.5px solid rgba(255,255,255,.4);
-  border-radius:12px;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
+.id-input::placeholder{color:rgba(255,255,255,.35);font-size:13px;font-weight:400;letter-spacing:0;font-family:'Tajawal',sans-serif}
+.id-input:focus{background:rgba(255,255,255,.1);border-color:#34D399;box-shadow:0 0 0 4px rgba(52,211,153,.15)}
+
+.search-btn{
+  width:56px;height:56px;flex-shrink:0;
+  background:linear-gradient(135deg,#10B981,#059669);
+  border:none;border-radius:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
   transition:.2s;
-  flex-shrink:0;
+  box-shadow:0 8px 20px rgba(16,185,129,.35);
 }
-.search-btn:hover {
-  background:rgba(255,255,255,.3);
-  transform:scale(1.05);
-}
-.search-btn:active { transform:scale(.97); }
-.hint {
-  text-align:center;
-  font-size:12px;
-  color:rgba(255,255,255,.55);
-}
+.search-btn svg{width:22px;height:22px;color:#fff}
+.search-btn:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(16,185,129,.45)}
+.search-btn:active{transform:scale(.96)}
+.search-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
 
-/* ── RESULTS ── */
-.result-wrap {
-  width:100%;
-  max-width:480px;
-  margin-top:16px;
-}
+.hint{text-align:center;font-size:11.5px;color:rgba(255,255,255,.45);margin-top:14px}
 
-.state-card {
-  background:rgba(255,255,255,.1);
-  border:1px solid rgba(255,255,255,.2);
-  border-radius:16px;
-  padding:36px 20px;
-  text-align:center;
-}
-.state-icon { font-size:44px; margin-bottom:10px; }
-.state-title { font-size:15px; font-weight:600; color:#fff; margin-bottom:4px; }
-.state-sub { font-size:13px; color:rgba(255,255,255,.6); }
+/* ── RESULT WRAP ── */
+.result-wrap{width:100%;max-width:460px;margin-top:18px}
 
-.result-card {
-  background:#fff;
-  border-radius:18px;
+/* skeleton loading */
+.skeleton-card{
+  background:var(--glass);border:1px solid var(--glass-border);border-radius:24px;padding:26px;
+}
+.sk-line{background:rgba(255,255,255,.12);border-radius:8px;height:14px;overflow:hidden;position:relative}
+.sk-line::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+  animation:shimmer 1.4s infinite;
+}
+@keyframes shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+
+/* generic state card (not found / empty) */
+.state-card{
+  background:var(--glass);backdrop-filter:blur(16px);
+  border:1px solid var(--glass-border);border-radius:22px;
+  padding:34px 22px;text-align:center;
+  animation:fadeSlide .35s ease;
+}
+.state-icon{width:46px;height:46px;margin:0 auto 14px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.state-icon svg{width:24px;height:24px}
+.state-icon.warn{background:rgba(251,191,36,.15);color:#FBBF24}
+.state-icon.error{background:rgba(248,113,113,.15);color:#F87171}
+.state-icon.hint{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
+.state-title{font-size:15px;font-weight:800;color:#fff;margin-bottom:5px}
+.state-sub{font-size:13px;color:rgba(255,255,255,.55);line-height:1.6}
+
+@keyframes fadeSlide{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── DIGITAL STUDENT CARD ── */
+.student-card{
+  background:linear-gradient(165deg, rgba(255,255,255,.1), rgba(255,255,255,.04));
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:26px;
   overflow:hidden;
-  box-shadow:0 16px 48px rgba(0,0,0,.18);
-  animation:pop .3s ease;
+  box-shadow:0 30px 70px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.12);
+  animation:fadeSlide .45s cubic-bezier(.2,.8,.2,1);
 }
-@keyframes pop {
-  from{opacity:0;transform:translateY(12px) scale(.98)}
-  to{opacity:1;transform:translateY(0) scale(1)}
+.card-band{height:5px;background:linear-gradient(90deg,#10B981,#34D399,#6EE7B7)}
+.card-top{padding:26px 24px 20px;text-align:center;border-bottom:1px dashed rgba(255,255,255,.15)}
+.card-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(16,185,129,.15);color:#6EE7B7;
+  font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;margin-bottom:14px;
 }
-.result-top {
-  background: linear-gradient(120deg, #4a7fa5, #4aad96);
-  padding:22px 22px 20px;
-  display:flex;
-  align-items:center;
-  gap:14px;
+.card-badge svg{width:12px;height:12px}
+.student-name{font-size:20px;font-weight:800;color:#fff;line-height:1.4;margin-bottom:10px}
+.student-id-pill{
+  display:inline-block;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:8px 16px;font-family:'Tajawal',monospace;
+  font-size:15px;font-weight:700;letter-spacing:.18em;color:#A7F3D0;direction:ltr;
 }
-.avatar {
-  width:52px;height:52px;border-radius:14px;
-  background:rgba(255,255,255,.2);
-  border:2px solid rgba(255,255,255,.4);
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;font-weight:700;color:#fff;flex-shrink:0;
-}
-.student-name { font-size:16px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:3px; }
-.student-id-lbl { font-size:11px;color:rgba(255,255,255,.7);direction:ltr;display:inline-block; }
+.student-id-pill .lbl{display:block;font-size:9px;font-weight:600;letter-spacing:.05em;color:rgba(255,255,255,.4);margin-bottom:3px;font-family:'Tajawal',sans-serif}
 
-.result-body { padding:18px 20px 20px; }
-.info-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
-.info-item {
-  background:#f8faff;
-  border-radius:11px;
-  padding:13px 14px;
-  border:1px solid #e8eef8;
+.card-body{padding:22px 20px 24px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.info-tile{
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;padding:16px 14px;text-align:center;
 }
-.info-label { font-size:11px;color:#94a3b8;font-weight:600;margin-bottom:4px;letter-spacing:.03em; }
-.info-value { font-size:14px;font-weight:700;color:#1e293b; }
-.info-item.accent { background:#e8f4ff;border-color:#b9d9f5; }
-.info-item.accent .info-label { color:#3b82f6; }
-.info-item.accent .info-value { color:#1d4ed8; }
+.info-tile .ic{
+  width:34px;height:34px;border-radius:10px;background:rgba(16,185,129,.18);color:#6EE7B7;
+  display:flex;align-items:center;justify-content:center;margin:0 auto 10px;
+}
+.info-tile .ic svg{width:17px;height:17px}
+.info-tile .lbl{font-size:11px;color:rgba(255,255,255,.5);font-weight:600;margin-bottom:4px}
+.info-tile .val{font-size:14px;font-weight:800;color:#fff;line-height:1.3}
+.info-tile.class-tile .val{font-size:22px}
 
-.seat-row {
-  display:flex;align-items:center;justify-content:center;
-  gap:8px;margin-top:14px;
-  background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;
-  padding:11px;
+.card-actions{display:flex;gap:10px}
+.action-btn{
+  flex:1;height:46px;border-radius:13px;border:none;cursor:pointer;
+  font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;
+  transition:.2s;
 }
-.seat-label { font-size:13px;color:#15803d; }
-.seat-num { font-size:20px;font-weight:800;color:#15803d; }
+.action-btn svg{width:16px;height:16px}
+.action-btn.primary{background:linear-gradient(135deg,#10B981,#059669);color:#fff;box-shadow:0 8px 18px rgba(16,185,129,.3)}
+.action-btn.primary:hover{transform:translateY(-1px)}
+.action-btn.ghost{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15)}
+.action-btn.ghost:hover{background:rgba(255,255,255,.14)}
 
-/* loading */
-.loading {
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  padding:28px;color:rgba(255,255,255,.8);font-size:14px;
-}
-.spinner {
-  width:22px;height:22px;border:3px solid rgba(255,255,255,.3);
-  border-top-color:#fff;border-radius:50%;
-  animation:spin .7s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* footer note */
+.footer-note{margin-top:28px;font-size:11px;color:rgba(255,255,255,.35);text-align:center}
 
-@media(max-width:440px){
-  .card{padding:24px 16px 20px}
-  .result-body{padding:14px 14px 16px}
-  .info-grid{grid-template-columns:1fr 1fr}
-  .moe-name{font-size:22px}
+@media(max-width:420px){
+  .search-card{padding:24px 18px}
+  .info-tile.class-tile .val{font-size:19px}
+  .student-name{font-size:18px}
 }
+
+@media print{
+  body *{visibility:hidden}
+  .student-card, .student-card *{visibility:visible}
+  .student-card{position:absolute;top:0;right:0;left:0;margin:20px auto;box-shadow:none;border:1px solid #ccc}
+  .card-actions{display:none}
+}
+
+[hidden]{display:none !important}
 </style>
 </head>
 <body>
 
-<!-- MOE HEADER -->
-<div class="moe-header">
-  <div class="moe-logo-wrap">
-    <svg class="moe-logo" width="100" height="48" viewBox="0 0 200 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="16" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="40" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="64" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="88" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="112" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="136" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="160" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="184" cy="16" r="7" fill="white" opacity="0.9"/>
-      <circle cx="28" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="52" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="76" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="100" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="124" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="148" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="172" cy="38" r="7" fill="white" opacity="0.85"/>
-      <circle cx="40" cy="60" r="7" fill="white" opacity="0.75"/>
-      <circle cx="64" cy="60" r="7" fill="white" opacity="0.75"/>
-      <circle cx="88" cy="60" r="7" fill="white" opacity="0.75"/>
-      <circle cx="112" cy="60" r="7" fill="white" opacity="0.75"/>
-      <circle cx="136" cy="60" r="7" fill="white" opacity="0.75"/>
-      <circle cx="160" cy="60" r="7" fill="white" opacity="0.75"/>
-      <circle cx="64" cy="82" r="7" fill="white" opacity="0.6"/>
-      <circle cx="88" cy="82" r="7" fill="white" opacity="0.6"/>
-      <circle cx="112" cy="82" r="7" fill="white" opacity="0.6"/>
-      <circle cx="136" cy="82" r="7" fill="white" opacity="0.6"/>
-    </svg>
+<div class="glow glow-1"></div>
+<div class="glow glow-2"></div>
+
+<div class="content">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-wrap">
+      <img src="/assets/moe-logo.svg" alt="شعار وزارة التعليم"
+           onerror="this.style.display='none'; document.getElementById('logoFallback').removeAttribute('hidden');">
+      <svg id="logoFallback" class="logo-fallback" hidden width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="31" stroke="url(#g1)" stroke-width="1.5" opacity=".5"/>
+        <circle cx="18" cy="20" r="5" fill="#fff" opacity="0.95"/>
+        <circle cx="32" cy="20" r="5" fill="#fff" opacity="0.95"/>
+        <circle cx="46" cy="20" r="5" fill="#fff" opacity="0.95"/>
+        <circle cx="25" cy="32" r="5" fill="#fff" opacity="0.8"/>
+        <circle cx="39" cy="32" r="5" fill="#fff" opacity="0.8"/>
+        <circle cx="32" cy="44" r="5" fill="#fff" opacity="0.65"/>
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="64" y2="64">
+            <stop stop-color="#34D399"/>
+            <stop offset="1" stop-color="#fff" stop-opacity=".2"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="moe-line"><b>وزارة التعـليم</b> &nbsp;·&nbsp; Ministry of Education</div>
+    <div class="region-line">الإدارة العامة للتعليم بمنطقة مكة المكرمة</div>
+    <div class="school-name">مدرسة عبدالرحمن بن أبي بكر الابتدائية</div>
   </div>
-  <div class="moe-name">وزارة التعـليم</div>
-  <div class="moe-name-en">Ministry of Education</div>
-  <div class="moe-region">الإدارة العامة للتعليم بمنطقة مكة المكرمة</div>
+
+  <!-- SEARCH -->
+  <div class="search-card">
+    <div class="search-label">الاستعلام عن الفصل الدراسي</div>
+    <div class="input-row">
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="idInput" class="id-input" placeholder="أدخل رقم الهوية" inputmode="text" maxlength="20" autocomplete="off">
+      </div>
+      <button class="search-btn" id="searchBtn" onclick="doSearch()" aria-label="بحث">
+        <svg id="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <svg id="searchSpinner" hidden viewBox="0 0 24 24" fill="none" style="animation:spin .7s linear infinite"><circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,.35)" stroke-width="3"/><path d="M21 12a9 9 0 00-9-9" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="hint">اضغط Enter أو زر البحث بعد إدخال رقم الهوية</div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="result-wrap" id="resultWrap" hidden></div>
+
+  <div class="footer-note">جميع البيانات المعروضة خاصة بالطالب المسجل برقم الهوية المُدخل فقط</div>
 </div>
 
-<div class="school-name">مدرسة عبدالرحمن بن أبي بكر الابتدائية</div>
-
-<!-- SEARCH CARD -->
-<div class="card">
-  <div class="card-title">الاستعلام عن الفصل الدراسي</div>
-  <div class="input-row">
-    <input
-      type="text"
-      id="idInput"
-      class="id-input"
-      placeholder="أدخل رقم الهوية"
-      inputmode="text"
-      maxlength="20"
-      autocomplete="off"
-    />
-    <button class="search-btn" onclick="doSearch()" aria-label="بحث">🔍</button>
-  </div>
-  <div class="hint">اضغط Enter أو زر البحث بعد إدخال الرقم</div>
-</div>
-
-<!-- RESULTS -->
-<div class="result-wrap" id="resultWrap" style="display:none"></div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
 <script>
-function getInitials(n){
-  const w=n.trim().split(/\s+/);
-  return w.length>=2?w[0][0]+w[1][0]:w[0].slice(0,2);
-}
-
 function esc(s){
   const d=document.createElement('div');
   d.textContent=String(s ?? '');
   return d.innerHTML;
 }
 
+function formatId(id){
+  const s = String(id);
+  return s.length > 6 ? s.replace(/(\d{4})(?=\d)/g, '$1 ') : s;
+}
+
+function setLoading(isLoading){
+  document.getElementById('searchBtn').disabled = isLoading;
+  document.getElementById('searchIcon').hidden = isLoading;
+  document.getElementById('searchSpinner').hidden = !isLoading;
+}
+
+function showSkeleton(){
+  const wrap = document.getElementById('resultWrap');
+  wrap.hidden = false;
+  wrap.innerHTML = `
+    <div class="skeleton-card">
+      <div class="sk-line" style="width:60%;height:20px;margin:0 auto 18px"></div>
+      <div class="sk-line" style="width:40%;height:14px;margin:0 auto 22px"></div>
+      <div style="display:flex;gap:12px">
+        <div class="sk-line" style="flex:1;height:70px;border-radius:16px"></div>
+        <div class="sk-line" style="flex:1;height:70px;border-radius:16px"></div>
+      </div>
+    </div>`;
+}
+
+function showState(type, title, sub){
+  const icons = {
+    hint: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12v-.008zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+    warn: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>',
+    error: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>',
+  };
+  const wrap = document.getElementById('resultWrap');
+  wrap.hidden = false;
+  wrap.innerHTML = `
+    <div class="state-card">
+      <div class="state-icon ${type}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${icons[type]}</svg></div>
+      <div class="state-title">${esc(title)}</div>
+      <div class="state-sub">${sub}</div>
+    </div>`;
+}
+
+function showStudentCard(s){
+  const wrap = document.getElementById('resultWrap');
+  wrap.hidden = false;
+  wrap.innerHTML = `
+    <div class="student-card">
+      <div class="card-band"></div>
+      <div class="card-top">
+        <div class="card-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          تم التحقق من البيانات
+        </div>
+        <div class="student-name">${esc(s.name)}</div>
+        <div class="student-id-pill">
+          <span class="lbl">رقم الهوية</span>
+          ${esc(formatId(s.id))}
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-tile">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.42A12.02 12.02 0 0121 12c0 2.9-1.06 5.55-2.82 7.58L12 14zm0 0l-6.16-3.42A12.02 12.02 0 003 12c0 2.9 1.06 5.55 2.82 7.58L12 14z"/></svg></div>
+            <div class="lbl">الصف الدراسي</div>
+            <div class="val">${esc(s.grade)}</div>
+          </div>
+          <div class="info-tile class-tile">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M19 21H5m0 0H3m8-14h.01M11 11h.01M11 15h.01M15 7h.01M15 11h.01M15 15h.01"/></svg></div>
+            <div class="lbl">الفصل</div>
+            <div class="val">فصل ${esc(s.class)}</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn ghost" onclick="window.print()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659"/></svg>
+            طباعة / حفظ البطاقة
+          </button>
+          <button class="action-btn primary" onclick="resetSearch()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            استعلام جديد
+          </button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function resetSearch(){
+  document.getElementById('resultWrap').hidden = true;
+  document.getElementById('resultWrap').innerHTML = '';
+  const input = document.getElementById('idInput');
+  input.value = '';
+  input.focus();
+}
+
 async function doSearch(){
-  const q=document.getElementById('idInput').value.trim();
-  const wrap=document.getElementById('resultWrap');
-  wrap.style.display='block';
+  const q = document.getElementById('idInput').value.trim();
 
   if(!q){
-    wrap.innerHTML=`<div class="state-card"><div class="state-icon">🔑</div><div class="state-title">الرجاء إدخال رقم الهوية</div><div class="state-sub">أدخل رقم الهوية ثم اضغط بحث</div></div>`;
+    showState('hint', 'الرجاء إدخال رقم الهوية', 'أدخل رقم الهوية في الحقل أعلاه ثم اضغط بحث');
     return;
   }
 
-  wrap.innerHTML=`<div class="loading"><div class="spinner"></div>جاري البحث...</div>`;
+  setLoading(true);
+  showSkeleton();
 
   try {
     const res = await fetch(`/api/search?id=${encodeURIComponent(q)}`);
     const data = await res.json();
 
     if(data.disabled){
-      wrap.innerHTML=`<div class="state-card"><div class="state-icon">🚫</div><div class="state-title">لم يتم إتاحة الاستعلام لهذا الصف حالياً</div><div class="state-sub">يرجى المحاولة لاحقاً أو التواصل مع إدارة المدرسة</div></div>`;
+      showState('warn', 'لم يتم إتاحة الاستعلام لهذا الصف حالياً', 'يرجى المحاولة لاحقاً أو التواصل مع إدارة المدرسة');
       return;
     }
 
     if(!data.found){
-      wrap.innerHTML=`<div class="state-card"><div class="state-icon">❌</div><div class="state-title">لا توجد نتيجة</div><div class="state-sub">لم يُعثر على طالب برقم الهوية: <strong style="color:#fff">${esc(q)}</strong></div></div>`;
+      showState('error', 'لا توجد نتيجة', `لم يُعثر على طالب برقم الهوية: <strong style="color:#fff">${esc(q)}</strong>`);
       return;
     }
 
-    const s=data.students[0];
-    wrap.innerHTML=`
-    <div class="result-card">
-      <div class="result-top">
-        <div class="avatar">${esc(getInitials(s.name))}</div>
-        <div>
-          <div class="student-name">${esc(s.name)}</div>
-          <span class="student-id-lbl">رقم الهوية: ${esc(s.id)}</span>
-        </div>
-      </div>
-      <div class="result-body">
-        <div class="info-grid">
-          <div class="info-item accent">
-            <div class="info-label">📚 الصف</div>
-            <div class="info-value">${esc(s.grade)}</div>
-          </div>
-          <div class="info-item accent">
-            <div class="info-label">🚪 الفصل</div>
-            <div class="info-value">فصل ${esc(s.class)}</div>
-          </div>
-        </div>
-      </div>
-    </div>`;
+    showStudentCard(data.students[0]);
   } catch(e){
-    wrap.innerHTML=`<div class="state-card"><div class="state-icon">⚠️</div><div class="state-title">خطأ في الاتصال</div><div class="state-sub">${e.message}</div></div>`;
+    showState('error', 'خطأ في الاتصال', 'تعذر الوصول للخادم، يرجى المحاولة مرة أخرى');
+  } finally {
+    setLoading(false);
   }
 }
 
-document.getElementById('idInput').addEventListener('keydown',e=>{
-  if(e.key==='Enter') doSearch();
+document.getElementById('idInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter') doSearch();
 });
 </script>
 </body>
