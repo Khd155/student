@@ -40,8 +40,9 @@ body{
 
 /* ── HEADER ── */
 .header{text-align:center;margin-bottom:36px;max-width:480px}
-.logo-wrap{width:64px;height:64px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center}
-.logo-wrap img{width:100%;height:100%;object-fit:contain}
+.logo-wrap{width:220px;max-width:70vw;margin:0 auto 14px;display:flex;align-items:center;justify-content:center}
+.logo-wrap img{width:100%;height:auto;object-fit:contain}
+.logo-fallback-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
 .logo-fallback{width:100%;height:100%}
 
 .moe-line{font-size:15px;font-weight:500;color:rgba(255,255,255,.75);letter-spacing:.02em}
@@ -214,25 +215,27 @@ body{
   <!-- HEADER -->
   <div class="header">
     <div class="logo-wrap">
-      <img src="/assets/moe-logo.svg" alt="شعار وزارة التعليم"
+      <img src="/assets/moe-logo.png" alt="شعار وزارة التعليم"
            onerror="this.style.display='none'; document.getElementById('logoFallback').removeAttribute('hidden');">
-      <svg id="logoFallback" class="logo-fallback" hidden width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="32" cy="32" r="31" stroke="url(#g1)" stroke-width="1.5" opacity=".5"/>
-        <circle cx="18" cy="20" r="5" fill="#fff" opacity="0.95"/>
-        <circle cx="32" cy="20" r="5" fill="#fff" opacity="0.95"/>
-        <circle cx="46" cy="20" r="5" fill="#fff" opacity="0.95"/>
-        <circle cx="25" cy="32" r="5" fill="#fff" opacity="0.8"/>
-        <circle cx="39" cy="32" r="5" fill="#fff" opacity="0.8"/>
-        <circle cx="32" cy="44" r="5" fill="#fff" opacity="0.65"/>
-        <defs>
-          <linearGradient id="g1" x1="0" y1="0" x2="64" y2="64">
-            <stop stop-color="#34D399"/>
-            <stop offset="1" stop-color="#fff" stop-opacity=".2"/>
-          </linearGradient>
-        </defs>
-      </svg>
+      <div id="logoFallback" class="logo-fallback-wrap" hidden>
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="31" stroke="url(#g1)" stroke-width="1.5" opacity=".5"/>
+          <circle cx="18" cy="20" r="5" fill="#fff" opacity="0.95"/>
+          <circle cx="32" cy="20" r="5" fill="#fff" opacity="0.95"/>
+          <circle cx="46" cy="20" r="5" fill="#fff" opacity="0.95"/>
+          <circle cx="25" cy="32" r="5" fill="#fff" opacity="0.8"/>
+          <circle cx="39" cy="32" r="5" fill="#fff" opacity="0.8"/>
+          <circle cx="32" cy="44" r="5" fill="#fff" opacity="0.65"/>
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="64" y2="64">
+              <stop stop-color="#34D399"/>
+              <stop offset="1" stop-color="#fff" stop-opacity=".2"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="moe-line"><b>وزارة التعـليم</b> &nbsp;·&nbsp; Ministry of Education</div>
+      </div>
     </div>
-    <div class="moe-line"><b>وزارة التعـليم</b> &nbsp;·&nbsp; Ministry of Education</div>
     <div class="region-line">الإدارة العامة للتعليم بمنطقة مكة المكرمة</div>
     <div class="school-name">مدرسة عبدالرحمن بن أبي بكر الابتدائية</div>
   </div>
