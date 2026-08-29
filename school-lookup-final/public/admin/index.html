@@ -162,6 +162,7 @@ tailwind.config = {
       <button class="tab-btn whitespace-nowrap px-4 py-2.5 text-sm font-bold border-b-2 border-navy text-navy" data-tab="import" onclick="switchTab('import')">📑 استيراد وتحديث البيانات</button>
       <button class="tab-btn whitespace-nowrap px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700" data-tab="visibility" onclick="switchTab('visibility')">👁️ إتاحة الفصول</button>
       <button class="tab-btn whitespace-nowrap px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700" data-tab="students" onclick="switchTab('students')">👥 سجل الطلاب والبحث</button>
+      <button class="tab-btn whitespace-nowrap px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700" data-tab="gradecodes" onclick="switchTab('gradecodes')">🔢 رموز الصفوف</button>
     </div>
 
     <!-- ============ IMPORT TAB ============ -->
@@ -335,6 +336,40 @@ tailwind.config = {
         <div class="flex items-center justify-center gap-3 mt-5 text-sm text-slate-600" id="pagination"></div>
       </div>
     </div>
+
+    <!-- ============ GRADE CODES TAB ============ -->
+    <div class="tab-panel" id="panel-gradecodes" hidden>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h3 class="text-sm font-bold text-navy mb-1">ترميز الصفوف (نظام نور)</h3>
+        <p class="text-xs text-slate-500 mb-5">يُستخدم هذا الجدول لترجمة رموز الصفوف من ملفات نور تلقائياً أثناء الاستيراد. أضف رمزاً جديداً لأي مرحلة مستقبلية دون الحاجة لتعديل الكود.</p>
+
+        <div class="flex flex-wrap items-end gap-3 mb-5 bg-slate-50 border border-slate-200 rounded-xl p-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5">الرمز (مثال: 0130)</label>
+            <input type="text" id="newGradeCode" placeholder="0130" class="w-32 h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy font-mono">
+          </div>
+          <div class="flex-1 min-w-[200px]">
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5">اسم الصف</label>
+            <input type="text" id="newGradeName" placeholder="مثال: الأول الابتدائي" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy">
+          </div>
+          <button onclick="addGradeMapping()" class="h-10 px-5 rounded-lg bg-navy text-white text-sm font-bold hover:bg-slate-800">+ إضافة رمز</button>
+        </div>
+        <p class="text-xs text-red-600 mb-3" id="gradeMappingError"></p>
+
+        <div class="overflow-x-auto rounded-lg border border-slate-200">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50">
+              <tr>
+                <th class="text-right px-3 py-2.5 text-xs font-bold text-slate-500">رمز نظام نور</th>
+                <th class="text-right px-3 py-2.5 text-xs font-bold text-slate-500">اسم الصف</th>
+                <th class="px-3 py-2.5"></th>
+              </tr>
+            </thead>
+            <tbody id="gradeMappingsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -417,7 +452,8 @@ tailwind.config = {
 
 <script>
 /* ==================== STATE ==================== */
-const GRADE_CODE_MAP = { 330: 'الثالث الابتدائي', 430: 'الرابع الابتدائي', 530: 'الخامس الابتدائي', 630: 'السادس الابتدائي' };
+let gradeCodeMap = {};
+let gradeMappings = [];
 const COLUMN_ALIASES = {
   id: ['رقم الطالب', 'رقم الهوية', 'الهوية'],
   name: ['اسم الطالب', 'الاسم'],
@@ -440,6 +476,46 @@ function escHtml(s) {
   const d = document.createElement('div');
   d.textContent = String(s ?? '');
   return d.innerHTML;
+}
+
+const ARABIC_INDIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
+
+function convertNonLatinDigits(str) {
+  return String(str).replace(/[٠-٩۰-۹]/g, ch => {
+    const a = ARABIC_INDIC_DIGITS.indexOf(ch);
+    if (a !== -1) return String(a);
+    const p = PERSIAN_DIGITS.indexOf(ch);
+    return p !== -1 ? String(p) : ch;
+  });
+}
+
+function stripHiddenChars(str) {
+  return String(str).replace(/[​-‏‪-‮﻿]/g, '');
+}
+
+function expandScientificNotation(str) {
+  const s = String(str).trim();
+  const m = s.match(/^([+-]?)(\d+)(?:\.(\d+))?[eE]([+-]?\d+)$/);
+  if (!m) return s;
+  const sign = m[1], intPart = m[2], fracPart = m[3] || '', exp = parseInt(m[4], 10);
+  if (!Number.isFinite(exp) || Math.abs(exp) > 30) return s;
+  let digits = intPart + fracPart;
+  const pointPos = intPart.length + exp;
+  if (pointPos >= digits.length) return sign + digits + '0'.repeat(pointPos - digits.length);
+  if (pointPos <= 0) return sign + '0.' + '0'.repeat(-pointPos) + digits;
+  return sign + digits.slice(0, pointPos) + '.' + digits.slice(pointPos);
+}
+
+function sanitizeText(raw) {
+  return stripHiddenChars(String(raw ?? '')).trim();
+}
+
+function sanitizeIdLike(raw) {
+  let s = convertNonLatinDigits(sanitizeText(raw));
+  s = expandScientificNotation(s);
+  if (s.includes('.')) s = s.split('.')[0];
+  return s;
 }
 
 function toast(msg) {
@@ -493,6 +569,7 @@ function showApp() {
   loadMetricsAndVisibility();
   loadSearchStats();
   loadGradeOptions();
+  loadGradeMappings();
   reloadStudents(1);
 }
 
@@ -725,9 +802,9 @@ function parseSheet(sheetName) {
 }
 
 function normalizeGrade(raw) {
-  const digits = String(raw).replace(/[^0-9]/g, '');
+  const digits = convertNonLatinDigits(sanitizeText(raw)).replace(/[^0-9]/g, '');
   const num = parseInt(digits, 10);
-  return GRADE_CODE_MAP[num] || String(raw).trim();
+  return gradeCodeMap[num] || sanitizeText(raw);
 }
 
 function onMappingChange() {
@@ -749,14 +826,14 @@ function onMappingChange() {
 
   parsedRows = [];
   for (const row of sheetDataRows) {
-    const id = String(row[idIdx] || '').trim();
-    const name = String(row[nameIdx] || '').trim();
+    const id = sanitizeIdLike(row[idIdx]);
+    const name = sanitizeText(row[nameIdx]);
     if (!id || !name) continue;
     parsedRows.push({
       id, name,
       grade: normalizeGrade(row[gradeIdx]),
-      class: String(row[classIdx] || '').trim(),
-      phone: phoneIdx !== '' ? String(row[phoneIdx] || '').trim() : '',
+      class: sanitizeIdLike(row[classIdx]),
+      phone: phoneIdx !== '' ? sanitizeIdLike(row[phoneIdx]) : '',
     });
   }
 
@@ -858,6 +935,105 @@ async function loadGradeOptions() {
     cSel.innerHTML = '<option value="">كل الفصول</option>' + classes.map(c => `<option value="${escHtml(c)}">فصل ${escHtml(c)}</option>`).join('');
     gSel.value = curG; cSel.value = curC;
   } catch (_) {}
+}
+
+/* ==================== GRADE CODE MAPPINGS ==================== */
+async function loadGradeMappings() {
+  try {
+    const data = await api('/api/admin/grade_mappings');
+    gradeMappings = data.mappings || [];
+    gradeCodeMap = {};
+    gradeMappings.forEach(m => { gradeCodeMap[parseInt(m.code, 10)] = m.grade_name; });
+    renderGradeMappingsTable();
+  } catch (_) {}
+}
+
+function renderGradeMappingsTable() {
+  const body = document.getElementById('gradeMappingsBody');
+  if (!body) return;
+  if (!gradeMappings.length) {
+    body.innerHTML = `<tr><td colspan="3" class="text-center text-slate-400 text-sm py-6">لا توجد رموز بعد</td></tr>`;
+    return;
+  }
+  body.innerHTML = gradeMappings.map((m, i) => `
+    <tr class="${i % 2 ? 'bg-slate-50' : ''} border-t border-slate-100" data-code="${escHtml(m.code)}">
+      <td class="px-3 py-2 font-mono text-slate-700">${escHtml(m.code)}</td>
+      <td class="px-3 py-2 text-slate-700">${escHtml(m.grade_name)}</td>
+      <td class="px-3 py-2">
+        <div class="flex justify-end gap-2">
+          <button onclick="editGradeMappingRow(${i})" class="text-xs font-bold text-slate-600 hover:text-navy px-2 py-1">تعديل</button>
+          <button onclick="deleteGradeMapping('${escHtml(m.code)}')" class="text-xs font-bold text-red-600 hover:text-red-700 px-2 py-1">حذف</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function editGradeMappingRow(index) {
+  const m = gradeMappings[index];
+  const row = document.querySelector(`#gradeMappingsBody tr[data-code="${CSS.escape(m.code)}"]`);
+  row.innerHTML = `
+    <td class="px-3 py-2 font-mono text-slate-700">${escHtml(m.code)}</td>
+    <td class="px-3 py-2"><input class="edit-input w-full h-8 px-2 border border-slate-300 rounded" value="${escHtml(m.grade_name)}" id="editGradeName_${index}"></td>
+    <td class="px-3 py-2">
+      <div class="flex justify-end gap-2">
+        <button onclick="saveGradeMappingRow(${index})" class="text-xs font-bold text-emerald-600 px-2 py-1">حفظ</button>
+        <button onclick="renderGradeMappingsTable()" class="text-xs font-bold text-slate-500 px-2 py-1">إلغاء</button>
+      </div>
+    </td>`;
+}
+
+async function saveGradeMappingRow(index) {
+  const m = gradeMappings[index];
+  const newName = document.getElementById(`editGradeName_${index}`).value.trim();
+  if (!newName) return;
+  try {
+    await api('/api/admin/grade_mappings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: m.code, grade_name: newName }),
+    });
+    toast('تم التحديث');
+    loadGradeMappings();
+  } catch (_) {
+    toast('تعذر التحديث');
+  }
+}
+
+async function deleteGradeMapping(code) {
+  if (!confirm(`حذف رمز "${code}"؟`)) return;
+  try {
+    await api('/api/admin/grade_mappings?code=' + encodeURIComponent(code), { method: 'DELETE' });
+    toast('تم الحذف');
+    loadGradeMappings();
+  } catch (_) {
+    toast('تعذر الحذف');
+  }
+}
+
+async function addGradeMapping() {
+  const codeInput = document.getElementById('newGradeCode');
+  const nameInput = document.getElementById('newGradeName');
+  const code = sanitizeIdLike(codeInput.value);
+  const name = nameInput.value.trim();
+  const errEl = document.getElementById('gradeMappingError');
+  errEl.textContent = '';
+  if (!code || !name) {
+    errEl.textContent = 'أدخل الرمز واسم الصف';
+    return;
+  }
+  try {
+    await api('/api/admin/grade_mappings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, grade_name: name }),
+    });
+    codeInput.value = '';
+    nameInput.value = '';
+    toast('تمت إضافة الرمز');
+    loadGradeMappings();
+  } catch (e) {
+    errEl.textContent = e.data && e.data.error === 'duplicate_code' ? 'هذا الرمز مضاف مسبقاً' : 'تعذر الإضافة';
+  }
 }
 
 let searchDebounceTimer = null;

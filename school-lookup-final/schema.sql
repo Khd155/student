@@ -15,6 +15,21 @@ CREATE TABLE IF NOT EXISTS class_visibility (
   PRIMARY KEY (grade, class)
 );
 
+-- Noor system grade-code -> grade-name mapping, editable from the
+-- admin panel so new stages/codes don't require a code change.
+CREATE TABLE IF NOT EXISTS grade_mappings (
+  code TEXT PRIMARY KEY,
+  grade_name TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+INSERT OR IGNORE INTO grade_mappings (code, grade_name, created_at) VALUES
+  ('0130', 'الأول الابتدائي', 0),
+  ('0230', 'الثاني الابتدائي', 0),
+  ('0330', 'الثالث الابتدائي', 0),
+  ('0430', 'الرابع الابتدائي', 0),
+  ('0530', 'الخامس الابتدائي', 0),
+  ('0630', 'السادس الابتدائي', 0);
+
 -- Admin panel session tokens, created on login and checked on every
 -- /api/admin/* request.
 CREATE TABLE IF NOT EXISTS admin_sessions (

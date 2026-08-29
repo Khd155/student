@@ -379,6 +379,11 @@ async function doSearch(){
     const res = await fetch(`/api/search?id=${encodeURIComponent(q)}`);
     const data = await res.json();
 
+    if(res.status === 429){
+      showState('warn', 'محاولات كثيرة جداً', esc(data.message || 'تم تجاوز الحد المسموح من المحاولات، يرجى الانتظار قليلاً قبل المحاولة مجدداً'));
+      return;
+    }
+
     if(data.disabled){
       showState('warn', 'لم يتم إتاحة الاستعلام لهذا الصف حالياً', 'يرجى المحاولة لاحقاً أو التواصل مع إدارة المدرسة');
       return;

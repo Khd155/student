@@ -5,6 +5,58 @@ import { jsonResponse, requireAdmin, logActivity, clientIp } from "./_auth.js";
 // safe margin under 100 / 5 = 20 rows per INSERT.
 const CHUNK_SIZE = 15;
 
+const ARABIC_INDIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+const PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
+
+function convertNonLatinDigits(str) {
+  return String(str).replace(/[٠-٩۰-۹]/g, (ch) => {
+    const arabicIdx = ARABIC_INDIC_DIGITS.indexOf(ch);
+    if (arabicIdx !== -1) return String(arabicIdx);
+    const persianIdx = PERSIAN_DIGITS.indexOf(ch);
+    return persianIdx !== -1 ? String(persianIdx) : ch;
+  });
+}
+
+function stripHiddenChars(str) {
+  return String(str).replace(/[​-‏‪-‮﻿]/g, "");
+}
+
+// Excel sometimes stores/displays long numeric IDs in scientific
+// notation (e.g. "4.1465715E+9"). Expand that back into a plain
+// integer string instead of silently truncating or rounding.
+function expandScientificNotation(str) {
+  const s = String(str).trim();
+  const m = s.match(/^([+-]?)(\d+)(?:\.(\d+))?[eE]([+-]?\d+)$/);
+  if (!m) return s;
+
+  const [, sign, intPart, fracPart = "", expStr] = m;
+  const exp = parseInt(expStr, 10);
+  if (!Number.isFinite(exp) || Math.abs(exp) > 30) return s;
+
+  let digits = intPart + fracPart;
+  const pointPos = intPart.length + exp;
+
+  if (pointPos >= digits.length) {
+    return sign + digits + "0".repeat(pointPos - digits.length);
+  }
+  if (pointPos <= 0) {
+    return sign + "0." + "0".repeat(-pointPos) + digits;
+  }
+  return sign + digits.slice(0, pointPos) + "." + digits.slice(pointPos);
+}
+
+function sanitizeText(raw) {
+  return stripHiddenChars(String(raw ?? "")).trim();
+}
+
+// For fields that must end up purely numeric (id, class, phone).
+function sanitizeIdLike(raw) {
+  let s = convertNonLatinDigits(sanitizeText(raw));
+  s = expandScientificNotation(s);
+  if (s.includes(".")) s = s.split(".")[0];
+  return s;
+}
+
 function buildInsertStatement(env, rows) {
   const placeholders = rows.map(() => "(?, ?, ?, ?, ?)").join(", ");
   const sql = `INSERT INTO students (id, name, grade, class, phone) VALUES ${placeholders}`;
@@ -40,13 +92,17 @@ export async function onRequestPost(context) {
   const cleanRows = [];
   for (const r of rows) {
     if (!r || !r.id || !r.name || !r.grade || !r.class) continue;
-    if (mode === "replace_grade" && String(r.grade).trim() !== String(grade).trim()) continue;
+    const rowGrade = sanitizeText(r.grade);
+    if (mode === "replace_grade" && rowGrade !== sanitizeText(grade)) continue;
+    const id = sanitizeIdLike(r.id);
+    const klass = sanitizeIdLike(r.class);
+    if (!id || !klass) continue;
     cleanRows.push({
-      id: String(r.id).trim(),
-      name: String(r.name).trim(),
-      grade: String(r.grade).trim(),
-      class: String(r.class).trim(),
-      phone: r.phone ? String(r.phone).trim() : null,
+      id,
+      name: sanitizeText(r.name),
+      grade: rowGrade,
+      class: klass,
+      phone: r.phone ? sanitizeIdLike(r.phone) : null,
     });
   }
 
@@ -58,7 +114,7 @@ export async function onRequestPost(context) {
   if (mode === "replace_all") {
     statements.push(context.env.DB.prepare("DELETE FROM students"));
   } else {
-    statements.push(context.env.DB.prepare("DELETE FROM students WHERE grade = ?").bind(grade));
+    statements.push(context.env.DB.prepare("DELETE FROM students WHERE grade = ?").bind(sanitizeText(grade)));
   }
 
   for (let i = 0; i < cleanRows.length; i += CHUNK_SIZE) {

@@ -1,3 +1,26 @@
+const RATE_LIMIT_WINDOW_SEC = 60;
+const RATE_LIMIT_MAX_REQUESTS = 12;
+
+async function checkRateLimit(env, key) {
+  const now = Math.floor(Date.now() / 1000);
+  const row = await env.DB.prepare("SELECT count, window_start FROM rate_limits WHERE key = ?").bind(key).first();
+
+  if (!row || now - row.window_start > RATE_LIMIT_WINDOW_SEC) {
+    await env.DB.prepare(
+      "INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?) " +
+      "ON CONFLICT(key) DO UPDATE SET count = 1, window_start = excluded.window_start"
+    ).bind(key, now).run();
+    return true;
+  }
+
+  if (row.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return false;
+  }
+
+  await env.DB.prepare("UPDATE rate_limits SET count = count + 1 WHERE key = ?").bind(key).run();
+  return true;
+}
+
 async function sha256Hex(text) {
   const bytes = new TextEncoder().encode(text);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -19,13 +42,25 @@ async function logSearch(env, request, studentId, found) {
 }
 
 export async function onRequest(context) {
-  const url = new URL(context.request.url);
-  const studentId = url.searchParams.get("id")?.trim();
-
   const headers = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
   };
+
+  const ip = context.request.headers.get("CF-Connecting-IP") || "unknown";
+  const allowed = await checkRateLimit(context.env, `search:${ip}`);
+  if (!allowed) {
+    return new Response(
+      JSON.stringify({
+        error: "rate_limited",
+        message: "تم تجاوز الحد المسموح من المحاولات، يرجى الانتظار قليلاً قبل المحاولة مجدداً",
+      }),
+      { status: 429, headers }
+    );
+  }
+
+  const url = new URL(context.request.url);
+  const studentId = url.searchParams.get("id")?.trim();
 
   if (!studentId) {
     return new Response(JSON.stringify({ error: "missing_id" }), { status: 400, headers });
