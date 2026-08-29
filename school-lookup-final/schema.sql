@@ -22,6 +22,15 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
   expires_at INTEGER NOT NULL
 );
 
+-- Admin panel settings, notably the hashed (SHA-256) login password
+-- (key = 'password_hash'). Kept in D1 rather than a Cloudflare Pages
+-- secret so it can be changed instantly from the dashboard itself,
+-- without needing a new deployment for the change to take effect.
+CREATE TABLE IF NOT EXISTS admin_config (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
 -- Fixed-window rate limiting (used for admin login attempts).
 CREATE TABLE IF NOT EXISTS rate_limits (
   key TEXT PRIMARY KEY,

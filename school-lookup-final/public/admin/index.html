@@ -201,6 +201,7 @@ tbody tr:hover { background:rgba(255,255,255,.05); }
       <button class="tab-btn active" data-tab="import" onclick="switchTab('import')">استيراد البيانات</button>
       <button class="tab-btn" data-tab="visibility" onclick="switchTab('visibility')">التحكم بالفصول</button>
       <button class="tab-btn" data-tab="students" onclick="switchTab('students')">إدارة الطلاب</button>
+      <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">الإعدادات</button>
     </div>
     <button class="btn btn-outline btn-small" onclick="doLogout()">تسجيل الخروج</button>
   </div>
@@ -262,6 +263,21 @@ tbody tr:hover { background:rgba(255,255,255,.05); }
       </table>
     </div>
     <div class="pagination" id="pagination"></div>
+  </div>
+
+  <!-- SETTINGS PANEL -->
+  <div class="card panel" id="panel-settings" style="max-width:420px">
+    <div class="section-title">تغيير كلمة مرور المشرف</div>
+    <div class="field">
+      <label>كلمة المرور الحالية</label>
+      <input type="password" id="currentPasswordInput" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>كلمة المرور الجديدة (6 أحرف على الأقل)</label>
+      <input type="password" id="newPasswordInput" autocomplete="off">
+    </div>
+    <button class="btn" onclick="changePassword()">حفظ كلمة المرور الجديدة</button>
+    <div class="error-msg" id="passwordChangeMsg"></div>
   </div>
 </div>
 
@@ -340,6 +356,30 @@ document.getElementById('passwordInput').addEventListener('keydown', e => { if (
 async function doLogout() {
   try { await api('/api/admin/logout', { method: 'POST' }); } catch (_) {}
   location.reload();
+}
+
+async function changePassword() {
+  const currentPassword = document.getElementById('currentPasswordInput').value;
+  const newPassword = document.getElementById('newPasswordInput').value;
+  const msgEl = document.getElementById('passwordChangeMsg');
+  msgEl.textContent = '';
+  msgEl.style.color = '';
+
+  try {
+    await api('/api/admin/change_password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    document.getElementById('currentPasswordInput').value = '';
+    document.getElementById('newPasswordInput').value = '';
+    msgEl.style.color = '#bbf7d0';
+    msgEl.textContent = 'تم تغيير كلمة المرور بنجاح';
+  } catch (e) {
+    if (e.data && e.data.error === 'weak_password') msgEl.textContent = 'كلمة المرور الجديدة قصيرة جداً';
+    else if (e.data && e.data.error === 'invalid_current_password') msgEl.textContent = 'كلمة المرور الحالية غير صحيحة';
+    else msgEl.textContent = 'حدث خطأ، حاول مرة أخرى';
+  }
 }
 
 function switchTab(tab) {

@@ -1,4 +1,4 @@
-import { jsonResponse, setSessionCookie, createSession, checkRateLimit, logActivity, clientIp } from "./_auth.js";
+import { jsonResponse, setSessionCookie, createSession, checkRateLimit, logActivity, clientIp, sha256Hex, getAdminPasswordHash } from "./_auth.js";
 
 export async function onRequestPost(context) {
   const ip = clientIp(context.request);
@@ -16,7 +16,9 @@ export async function onRequestPost(context) {
   }
 
   const password = (body && body.password) || "";
-  if (!context.env.ADMIN_PASSWORD || password !== context.env.ADMIN_PASSWORD) {
+  const storedHash = await getAdminPasswordHash(context.env);
+  const submittedHash = await sha256Hex(password);
+  if (!storedHash || submittedHash !== storedHash) {
     await logActivity(context.env, "login_failed", null, ip);
     return jsonResponse({ error: "invalid_password" }, 401);
   }

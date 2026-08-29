@@ -82,3 +82,21 @@ export async function logActivity(env, type, detail, ip) {
 export function clientIp(request) {
   return request.headers.get("CF-Connecting-IP") || "unknown";
 }
+
+export async function sha256Hex(text) {
+  const bytes = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export async function getAdminPasswordHash(env) {
+  const row = await env.DB.prepare("SELECT value FROM admin_config WHERE key = 'password_hash'").first();
+  return row ? row.value : null;
+}
+
+export async function setAdminPasswordHash(env, hash) {
+  await env.DB.prepare(
+    "INSERT INTO admin_config (key, value) VALUES ('password_hash', ?) " +
+    "ON CONFLICT(key) DO UPDATE SET value = excluded.value"
+  ).bind(hash).run();
+}
