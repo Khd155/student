@@ -3,314 +3,442 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة تحكم المشرف</title>
+<title>لوحة تحكم إدارة الفصول</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { sans: ['Tajawal', 'Segoe UI', 'Tahoma', 'sans-serif'] },
+      colors: { navy: '#0F172A' },
+    }
+  }
+}
+</script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+  body { font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif; }
 
-body {
-  min-height:100vh;
-  font-family:'Segoe UI',Tahoma,Arial,sans-serif;
-  direction:rtl;
-  background: linear-gradient(120deg, #4a7fa5 0%, #4aad96 100%);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding:32px 16px 60px;
-}
+  .toggle { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle .track { position: absolute; inset: 0; background: #CBD5E1; border-radius: 999px; transition: .2s; cursor: pointer; }
+  .toggle .track:before { content: ""; position: absolute; height: 18px; width: 18px; right: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .toggle input:checked + .track { background: #059669; }
+  .toggle input:checked + .track:before { transform: translateX(-20px); }
+  .toggle input:disabled + .track { opacity: .5; cursor: not-allowed; }
 
-.header {
-  text-align:center;
-  margin-bottom:28px;
-  color:#fff;
-}
-.header h1 { font-size:22px; font-weight:700; margin-bottom:4px; }
-.header p { font-size:13px; color:rgba(255,255,255,.75); }
+  .step-circle { width: 34px; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .step-line { flex: 1; height: 2px; background: #E2E8F0; margin: 0 8px; }
+  .step-line.done { background: #0F172A; }
 
-.card {
-  background:rgba(255,255,255,.12);
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,.25);
-  border-radius:20px;
-  padding:28px 24px;
-  width:100%;
-}
+  .modal-backdrop { background: rgba(15,23,42,.5); }
 
-.login-card { max-width:380px; margin-top:60px; }
-.login-card .card-title { font-size:15px; font-weight:600; color:#fff; margin-bottom:16px; text-align:center; }
-.field { margin-bottom:14px; }
-.field label { display:block; font-size:12px; color:rgba(255,255,255,.75); margin-bottom:6px; }
-input[type=password], input[type=text], input[type=file], select {
-  width:100%;
-  background:rgba(255,255,255,.15);
-  border:1.5px solid rgba(255,255,255,.3);
-  border-radius:10px;
-  padding:0 14px;
-  height:44px;
-  font-size:14px;
-  color:#fff;
-  outline:none;
-  font-family:inherit;
-}
-input[type=file] { padding:8px 14px; height:auto; }
-select option { color:#111; }
-input::placeholder { color:rgba(255,255,255,.5); }
-input:focus, select:focus { border-color:rgba(255,255,255,.7); background:rgba(255,255,255,.22); }
+  ::-webkit-scrollbar { height: 8px; width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 999px; }
 
-.btn {
-  display:inline-flex; align-items:center; justify-content:center; gap:6px;
-  background:rgba(255,255,255,.9);
-  color:#2d6a7a;
-  border:none;
-  border-radius:10px;
-  padding:0 18px;
-  height:42px;
-  font-size:14px;
-  font-weight:700;
-  cursor:pointer;
-  transition:.15s;
-}
-.btn:hover { background:#fff; transform:translateY(-1px); }
-.btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
-.btn-outline {
-  background:rgba(255,255,255,.12);
-  color:#fff;
-  border:1.5px solid rgba(255,255,255,.4);
-}
-.btn-outline:hover { background:rgba(255,255,255,.22); }
-.btn-danger { background:#fca5a5; color:#7f1d1d; }
-.btn-danger:hover { background:#f87171; }
-.btn-small { height:32px; padding:0 12px; font-size:12px; border-radius:8px; }
-
-.error-msg { color:#fecaca; font-size:12px; margin-top:8px; text-align:center; min-height:16px; }
-
-.app { width:100%; max-width:1100px; display:none; flex-direction:column; gap:20px; }
-.app.visible { display:flex; }
-
-.topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-.topbar .tabs { display:flex; gap:8px; flex-wrap:wrap; }
-.tab-btn {
-  background:rgba(255,255,255,.12);
-  color:#fff;
-  border:1.5px solid rgba(255,255,255,.25);
-  border-radius:10px;
-  padding:0 16px;
-  height:38px;
-  font-size:13px;
-  font-weight:600;
-  cursor:pointer;
-}
-.tab-btn.active { background:#fff; color:#2d6a7a; }
-
-.panel { display:none; }
-.panel.active { display:block; }
-
-.section-title { color:#fff; font-size:15px; font-weight:700; margin-bottom:14px; }
-
-.sheet-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
-.sheet-tab {
-  background:rgba(255,255,255,.12); color:#fff; border:1.5px solid rgba(255,255,255,.3);
-  border-radius:8px; padding:6px 14px; font-size:13px; cursor:pointer;
-}
-.sheet-tab.active { background:#fff; color:#2d6a7a; }
-
-.summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin:16px 0; }
-.summary-item { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:10px; padding:12px 14px; }
-.summary-item .n { font-size:20px; font-weight:800; color:#fff; }
-.summary-item .l { font-size:12px; color:rgba(255,255,255,.7); margin-top:2px; }
-
-.mode-row { display:flex; gap:18px; align-items:center; margin:14px 0; flex-wrap:wrap; }
-.mode-row label { color:#fff; font-size:13px; display:flex; align-items:center; gap:6px; cursor:pointer; }
-
-table { width:100%; border-collapse:collapse; font-size:13px; color:#fff; }
-thead th {
-  text-align:right; padding:10px 12px; font-size:12px; color:rgba(255,255,255,.7);
-  border-bottom:1px solid rgba(255,255,255,.2); white-space:nowrap;
-}
-tbody td { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,.1); white-space:nowrap; }
-tbody tr:hover { background:rgba(255,255,255,.05); }
-.table-wrap { overflow-x:auto; border-radius:12px; }
-
-.switch { position:relative; display:inline-block; width:42px; height:24px; }
-.switch input { opacity:0; width:0; height:0; }
-.slider {
-  position:absolute; cursor:pointer; inset:0; background:rgba(255,255,255,.25);
-  border-radius:24px; transition:.2s;
-}
-.slider:before {
-  content:""; position:absolute; height:18px; width:18px; right:3px; bottom:3px;
-  background:#fff; border-radius:50%; transition:.2s;
-}
-.switch input:checked + .slider { background:#4ade80; }
-.switch input:checked + .slider:before { transform:translateX(-18px); }
-
-.filters { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
-.filters > * { flex:1; min-width:140px; }
-.filters .btn { flex:0 0 auto; }
-
-.pagination { display:flex; justify-content:center; align-items:center; gap:10px; margin-top:16px; color:#fff; font-size:13px; }
-
-.edit-input {
-  width:100%; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3);
-  border-radius:6px; padding:4px 8px; color:#fff; font-size:13px;
-}
-
-.toast {
-  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-  background:#1e293b; color:#fff; padding:12px 20px; border-radius:10px;
-  font-size:13px; box-shadow:0 8px 24px rgba(0,0,0,.3); z-index:100;
-  opacity:0; pointer-events:none; transition:.25s;
-}
-.toast.show { opacity:1; }
-
-.spinner-inline {
-  width:16px;height:16px;border:2.5px solid rgba(45,106,122,.3);
-  border-top-color:#2d6a7a;border-radius:50%;
-  display:inline-block; animation:spin .7s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-.hint { font-size:12px; color:rgba(255,255,255,.6); margin-top:6px; }
-
-@media(max-width:600px){ .card{padding:20px 16px} .header h1{font-size:18px} }
+  [hidden] { display: none !important; }
 </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
 
-<div class="header">
-  <h1>لوحة تحكم المشرف</h1>
-  <p>استعلام الطلاب عن الفصول</p>
+<!-- ============ LOGIN VIEW ============ -->
+<div id="loginView" class="min-h-screen flex items-center justify-center px-4">
+  <div class="w-full max-w-sm bg-white rounded-2xl shadow-md border border-slate-200 p-8">
+    <div class="text-center mb-6">
+      <div class="w-12 h-12 rounded-xl bg-navy text-white flex items-center justify-center mx-auto mb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      </div>
+      <h1 class="text-lg font-bold text-navy">لوحة تحكم إدارة الفصول</h1>
+      <p class="text-xs text-slate-500 mt-1">مدرسة عبدالرحمن بن أبي بكر الابتدائية</p>
+    </div>
+    <label class="block text-xs font-semibold text-slate-500 mb-1.5">كلمة المرور</label>
+    <input type="password" id="passwordInput" placeholder="أدخل كلمة المرور" autocomplete="off"
+      class="w-full h-11 px-4 rounded-lg border border-slate-300 focus:border-navy focus:ring-2 focus:ring-navy/10 outline-none text-sm mb-4">
+    <button id="loginBtn" onclick="doLogin()" class="w-full h-11 rounded-lg bg-navy text-white font-bold text-sm hover:bg-slate-800 transition disabled:opacity-50">
+      دخول
+    </button>
+    <p id="loginError" class="text-red-600 text-xs text-center mt-3 min-h-[16px]"></p>
+  </div>
 </div>
 
-<!-- LOGIN -->
-<div class="card login-card" id="loginCard">
-  <div class="card-title">تسجيل الدخول</div>
-  <div class="field">
-    <label>كلمة المرور</label>
-    <input type="password" id="passwordInput" placeholder="أدخل كلمة المرور" autocomplete="off">
-  </div>
-  <button class="btn" style="width:100%" id="loginBtn" onclick="doLogin()">دخول</button>
-  <div class="error-msg" id="loginError"></div>
-</div>
+<!-- ============ APP VIEW ============ -->
+<div id="appView" class="min-h-screen" hidden>
 
-<!-- APP -->
-<div class="app" id="app">
-  <div class="topbar">
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="import" onclick="switchTab('import')">استيراد البيانات</button>
-      <button class="tab-btn" data-tab="visibility" onclick="switchTab('visibility')">التحكم بالفصول</button>
-      <button class="tab-btn" data-tab="students" onclick="switchTab('students')">إدارة الطلاب</button>
-      <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">الإعدادات</button>
+  <!-- TOP NAV -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-9 h-9 rounded-lg bg-navy text-white flex items-center justify-center flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.42A12.02 12.02 0 0121 12c0 2.9-1.06 5.55-2.82 7.58L12 14zm0 0l-6.16-3.42A12.02 12.02 0 003 12c0 2.9 1.06 5.55 2.82 7.58L12 14z"/></svg>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-sm font-bold text-navy truncate">لوحة تحكم إدارة الفصول</h1>
+          <p class="text-[11px] text-slate-500 truncate">مدرسة عبدالرحمن بن أبي بكر الابتدائية</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <div class="hidden sm:flex items-center gap-1.5 text-xs text-slate-500">
+          <span id="dbStatusDot" class="w-2 h-2 rounded-full bg-slate-300"></span>
+          <span id="dbStatusText">جارٍ الاتصال...</span>
+        </div>
+        <button onclick="openSettingsModal()" class="w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50" title="الإعدادات">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </button>
+        <button onclick="doLogout()" class="h-9 px-4 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition">تسجيل الخروج</button>
+      </div>
     </div>
-    <button class="btn btn-outline btn-small" onclick="doLogout()">تسجيل الخروج</button>
-  </div>
+  </header>
 
-  <!-- IMPORT PANEL -->
-  <div class="card panel active" id="panel-import">
-    <div class="section-title">رفع واستيراد ملف Excel</div>
-    <div class="field">
-      <label>اختر ملف Excel (نظام نور)</label>
-      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFile(event)">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+
+    <!-- METRICS -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+        <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6-4a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </div>
+        <div class="text-2xl font-extrabold text-navy" id="metricTotalStudents">-</div>
+        <div class="text-xs text-slate-500 mt-1">إجمالي الطلاب المسجلين</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+        <div class="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        </div>
+        <div class="text-2xl font-extrabold text-navy" id="metricGrades">-</div>
+        <div class="text-xs text-slate-500 mt-1">الصفوف الدراسية المتاحة</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+        <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M19 21H5m0 0H3m8-14h.01M11 11h.01M11 15h.01M15 7h.01M15 11h.01M15 15h.01"/></svg>
+        </div>
+        <div class="text-2xl font-extrabold text-navy" id="metricClasses">-</div>
+        <div class="text-xs text-slate-500 mt-1">عدد الفصول الإجمالي</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+        <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div class="text-2xl font-extrabold text-navy" id="metricSystemStatus">-</div>
+        <div class="text-xs text-slate-500 mt-1" id="metricSystemSub">حالة النظام</div>
+      </div>
     </div>
-    <div class="hint">الأعمدة المتوقعة: رقم الطالب، اسم الطالب، رقم الصف، الفصل، الجوال (اختياري)</div>
 
-    <div id="sheetTabsWrap" style="display:none">
-      <div class="section-title" style="margin-top:20px">اختر ورقة العمل</div>
-      <div class="sheet-tabs" id="sheetTabs"></div>
+    <!-- TABS -->
+    <div class="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
+      <button class="tab-btn whitespace-nowrap px-4 py-2.5 text-sm font-bold border-b-2 border-navy text-navy" data-tab="import" onclick="switchTab('import')">📑 استيراد وتحديث البيانات</button>
+      <button class="tab-btn whitespace-nowrap px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700" data-tab="visibility" onclick="switchTab('visibility')">👁️ إتاحة الفصول</button>
+      <button class="tab-btn whitespace-nowrap px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700" data-tab="students" onclick="switchTab('students')">👥 سجل الطلاب والبحث</button>
     </div>
 
-    <div id="previewWrap" style="display:none">
-      <div class="section-title" style="margin-top:10px">معاينة البيانات</div>
-      <div class="summary-grid" id="summaryGrid"></div>
+    <!-- ============ IMPORT TAB ============ -->
+    <div class="tab-panel" id="panel-import">
 
-      <div class="mode-row">
-        <label><input type="radio" name="importMode" value="replace_all" checked onchange="onModeChange()"> استبدال كامل البيانات</label>
-        <label><input type="radio" name="importMode" value="replace_grade" onchange="onModeChange()"> تحديث صف دراسي محدد فقط</label>
-        <select id="targetGradeSelect" style="max-width:220px;display:none"></select>
+      <!-- Stepper -->
+      <div class="flex items-center mb-6" id="stepper">
+        <div class="flex flex-col items-center gap-1.5" data-step="1">
+          <div class="step-circle bg-navy text-white">1</div>
+          <span class="text-[11px] font-semibold text-slate-600">رفع الملف</span>
+        </div>
+        <div class="step-line" data-line="1"></div>
+        <div class="flex flex-col items-center gap-1.5" data-step="2">
+          <div class="step-circle bg-slate-200 text-slate-500">2</div>
+          <span class="text-[11px] font-semibold text-slate-400">مطابقة الأعمدة</span>
+        </div>
+        <div class="step-line" data-line="2"></div>
+        <div class="flex flex-col items-center gap-1.5" data-step="3">
+          <div class="step-circle bg-slate-200 text-slate-500">3</div>
+          <span class="text-[11px] font-semibold text-slate-400">معاينة البيانات</span>
+        </div>
+        <div class="step-line" data-line="3"></div>
+        <div class="flex flex-col items-center gap-1.5" data-step="4">
+          <div class="step-circle bg-slate-200 text-slate-500">4</div>
+          <span class="text-[11px] font-semibold text-slate-400">التنفيذ</span>
+        </div>
       </div>
 
-      <button class="btn" id="confirmImportBtn" onclick="confirmImport()">تأكيد الاستيراد والحفظ</button>
-      <div class="error-msg" id="importError"></div>
-    </div>
-  </div>
+      <!-- Step 1: Dropzone -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-5">
+        <h3 class="text-sm font-bold text-navy mb-4">١. رفع ملف Excel (نظام نور)</h3>
+        <div id="dropzone" class="border-2 border-dashed border-slate-300 rounded-xl p-10 text-center cursor-pointer hover:border-navy hover:bg-slate-50 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-emerald-600 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-6 4h6m2 5H7a2 2 0 01-2-2V4a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V20a2 2 0 01-2 2z"/></svg>
+          <p class="text-sm font-bold text-slate-700 mb-1">اسحب ملف Excel هنا أو اضغط للاختيار</p>
+          <p class="text-xs text-slate-400">يدعم .xlsx و .xls و .csv</p>
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleFile(event)">
+        </div>
+        <div id="fileNameRow" class="flex items-center gap-2 mt-3 text-xs text-slate-600" hidden>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <span id="fileNameLabel"></span>
+        </div>
 
-  <!-- VISIBILITY PANEL -->
-  <div class="card panel" id="panel-visibility">
-    <div class="section-title">تفعيل / تعطيل الاستعلام لكل صف وفصل</div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>الصف</th><th>الفصل</th><th>عدد الطلاب</th><th>مفعّل</th></tr></thead>
-        <tbody id="visibilityBody"></tbody>
-      </table>
-    </div>
-  </div>
+        <div id="sheetSelectRow" class="mt-4" hidden>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5">ورقة العمل (Sheet)</label>
+          <select id="sheetSelect" onchange="parseSheet(this.value)" class="w-full sm:w-72 h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy"></select>
+        </div>
+      </div>
 
-  <!-- STUDENTS PANEL -->
-  <div class="card panel" id="panel-students">
-    <div class="section-title">إدارة الطلاب</div>
-    <div class="filters">
-      <select id="filterGrade" onchange="reloadStudents(1)"><option value="">كل الصفوف</option></select>
-      <select id="filterClass" onchange="reloadStudents(1)"><option value="">كل الفصول</option></select>
-      <input type="text" id="filterSearch" placeholder="بحث برقم الهوية أو الاسم" oninput="debouncedSearch()">
-      <button class="btn btn-outline" onclick="exportExcel()">تصدير Excel</button>
-      <button class="btn" onclick="showAddRow()">+ إضافة طالب</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>رقم الهوية</th><th>الاسم</th><th>الصف</th><th>الفصل</th><th>الجوال</th><th></th></tr></thead>
-        <tbody id="studentsBody"></tbody>
-      </table>
-    </div>
-    <div class="pagination" id="pagination"></div>
-  </div>
+      <!-- Step 2: Column mapping -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-5" id="mappingCard" hidden>
+        <h3 class="text-sm font-bold text-navy mb-1">٢. مطابقة الأعمدة</h3>
+        <p class="text-xs text-slate-500 mb-4">تم اكتشاف صف الترويسة تلقائياً — تحقق من مطابقة كل حقل لعموده الصحيح في الملف</p>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5">رقم الطالب / الهوية <span class="text-red-500">*</span></label>
+            <select id="mapId" onchange="onMappingChange()" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5">اسم الطالب <span class="text-red-500">*</span></label>
+            <select id="mapName" onchange="onMappingChange()" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5">رمز / رقم الصف <span class="text-red-500">*</span></label>
+            <select id="mapGrade" onchange="onMappingChange()" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5">الفصل <span class="text-red-500">*</span></label>
+            <select id="mapClass" onchange="onMappingChange()" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5">رقم الجوال (اختياري)</label>
+            <select id="mapPhone" onchange="onMappingChange()" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy"></select>
+          </div>
+        </div>
+        <p class="text-xs text-red-600 mt-3" id="mappingError"></p>
+      </div>
 
-  <!-- SETTINGS PANEL -->
-  <div class="card panel" id="panel-settings" style="max-width:420px">
-    <div class="section-title">تغيير كلمة مرور المشرف</div>
-    <div class="field">
-      <label>كلمة المرور الحالية</label>
-      <input type="password" id="currentPasswordInput" autocomplete="off">
+      <!-- Step 3: Live preview -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-5" id="previewCard" hidden>
+        <h3 class="text-sm font-bold text-navy mb-1">٣. معاينة البيانات</h3>
+        <p class="text-xs text-slate-500 mb-4">عيّنة من أول 5 صفوف بعد تطبيق المطابقة وترجمة رموز نور</p>
+        <div class="overflow-x-auto rounded-lg border border-slate-200 mb-4">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50">
+              <tr>
+                <th class="text-right px-3 py-2 text-xs font-bold text-slate-500">رقم الهوية</th>
+                <th class="text-right px-3 py-2 text-xs font-bold text-slate-500">الاسم</th>
+                <th class="text-right px-3 py-2 text-xs font-bold text-slate-500">الصف</th>
+                <th class="text-right px-3 py-2 text-xs font-bold text-slate-500">الفصل</th>
+                <th class="text-right px-3 py-2 text-xs font-bold text-slate-500">الجوال</th>
+              </tr>
+            </thead>
+            <tbody id="previewTableBody"></tbody>
+          </table>
+        </div>
+        <div class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-2 rounded-lg" id="previewSummary"></div>
+      </div>
+
+      <!-- Step 4: Action -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6" id="actionCard" hidden>
+        <h3 class="text-sm font-bold text-navy mb-4">٤. نوع العملية والتنفيذ</h3>
+        <div class="grid sm:grid-cols-2 gap-4 mb-5">
+          <label class="cursor-pointer border-2 rounded-xl p-4 flex items-start gap-3 transition" id="radioCardAll">
+            <input type="radio" name="importMode" value="replace_all" checked onchange="onModeChange()" class="mt-1">
+            <div>
+              <div class="text-sm font-bold text-slate-800">استبدال كامل القاعدة</div>
+              <div class="text-xs text-slate-500 mt-1">حذف جميع بيانات الطلاب الحالية وإدراج الطلاب الجدد من الملف بالكامل</div>
+            </div>
+          </label>
+          <label class="cursor-pointer border-2 rounded-xl p-4 flex items-start gap-3 transition" id="radioCardGrade">
+            <input type="radio" name="importMode" value="replace_grade" onchange="onModeChange()" class="mt-1">
+            <div class="flex-1">
+              <div class="text-sm font-bold text-slate-800">تحديث صف محدد فقط</div>
+              <div class="text-xs text-slate-500 mt-1 mb-2">إبقاء بقية الصفوف كما هي، وتحديث الصف المختار من الملف فقط</div>
+              <select id="targetGradeSelect" onclick="event.preventDefault()" class="w-full h-9 px-2 rounded-lg border border-slate-300 text-xs outline-none" disabled></select>
+            </div>
+          </label>
+        </div>
+        <button id="confirmImportBtn" onclick="confirmImport()" class="w-full sm:w-auto px-8 h-12 rounded-xl bg-navy text-white font-bold text-sm hover:bg-slate-800 transition flex items-center justify-center gap-2">
+          <span id="confirmImportLabel">بدء الاستيراد وحفظ البيانات</span>
+        </button>
+        <div class="mt-4 hidden" id="importProgressWrap">
+          <div class="h-2 bg-slate-200 rounded-full overflow-hidden"><div class="h-full bg-navy animate-pulse" style="width:60%"></div></div>
+        </div>
+        <p class="text-xs text-red-600 mt-3" id="importError"></p>
+      </div>
     </div>
-    <div class="field">
-      <label>كلمة المرور الجديدة (6 أحرف على الأقل)</label>
-      <input type="password" id="newPasswordInput" autocomplete="off">
+
+    <!-- ============ VISIBILITY TAB ============ -->
+    <div class="tab-panel" id="panel-visibility" hidden>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h3 class="text-sm font-bold text-navy mb-1">إتاحة نتائج الاستعلام لكل فصل</h3>
+        <p class="text-xs text-slate-500 mb-5">فعّل أو عطّل ظهور نتائج الاستعلام لكل فصل على حدة — التغيير ينعكس فوراً على صفحة الطالب</p>
+        <div id="visibilityGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
     </div>
-    <button class="btn" onclick="changePassword()">حفظ كلمة المرور الجديدة</button>
-    <div class="error-msg" id="passwordChangeMsg"></div>
+
+    <!-- ============ STUDENTS TAB ============ -->
+    <div class="tab-panel" id="panel-students" hidden>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div class="flex flex-wrap items-center gap-3 mb-5">
+          <div class="relative flex-1 min-w-[220px]">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" id="filterSearch" placeholder="بحث بالاسم أو رقم الهوية" oninput="debouncedSearch()"
+              class="w-full h-10 pr-9 pl-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy">
+          </div>
+          <select id="filterGrade" onchange="reloadStudents(1)" class="h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none min-w-[160px]"><option value="">كل الصفوف</option></select>
+          <select id="filterClass" onchange="reloadStudents(1)" class="h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none min-w-[120px]"><option value="">كل الفصول</option></select>
+          <button onclick="exportExcel()" class="h-10 px-4 rounded-lg border border-slate-300 text-sm font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
+            تصدير Excel
+          </button>
+          <button onclick="openStudentModal()" class="h-10 px-4 rounded-lg bg-navy text-white text-sm font-bold hover:bg-slate-800">+ إضافة طالب</button>
+        </div>
+
+        <div class="overflow-x-auto rounded-lg border border-slate-200">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50">
+              <tr>
+                <th class="text-right px-3 py-2.5 text-xs font-bold text-slate-500">رقم الهوية</th>
+                <th class="text-right px-3 py-2.5 text-xs font-bold text-slate-500">الاسم</th>
+                <th class="text-right px-3 py-2.5 text-xs font-bold text-slate-500">الصف</th>
+                <th class="text-right px-3 py-2.5 text-xs font-bold text-slate-500">الفصل</th>
+                <th class="text-right px-3 py-2.5 text-xs font-bold text-slate-500">الجوال</th>
+                <th class="px-3 py-2.5"></th>
+              </tr>
+            </thead>
+            <tbody id="studentsBody"></tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-center gap-3 mt-5 text-sm text-slate-600" id="pagination"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ STUDENT MODAL (add/edit) ============ -->
+<div id="studentModal" class="fixed inset-0 z-40 flex items-center justify-center p-4 modal-backdrop" hidden>
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+    <h3 class="text-sm font-bold text-navy mb-4" id="studentModalTitle">إضافة طالب</h3>
+    <input type="hidden" id="studentModalRowId">
+    <div class="space-y-3">
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1.5">رقم الهوية</label>
+        <input type="text" id="studentModalId" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1.5">الاسم</label>
+        <input type="text" id="studentModalName" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5">الصف</label>
+          <input type="text" id="studentModalGrade" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5">الفصل</label>
+          <input type="text" id="studentModalClass" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1.5">الجوال (اختياري)</label>
+        <input type="text" id="studentModalPhone" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy">
+      </div>
+    </div>
+    <p class="text-xs text-red-600 mt-3 min-h-[16px]" id="studentModalError"></p>
+    <div class="flex gap-3 mt-5">
+      <button onclick="saveStudentModal()" class="flex-1 h-10 rounded-lg bg-navy text-white text-sm font-bold hover:bg-slate-800">حفظ</button>
+      <button onclick="closeStudentModal()" class="flex-1 h-10 rounded-lg border border-slate-300 text-sm font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
+    </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- ============ DELETE CONFIRM MODAL ============ -->
+<div id="deleteModal" class="fixed inset-0 z-40 flex items-center justify-center p-4 modal-backdrop" hidden>
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+    <div class="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+    </div>
+    <h3 class="text-sm font-bold text-slate-800 mb-1">تأكيد الحذف</h3>
+    <p class="text-xs text-slate-500 mb-5">هل أنت متأكد من حذف بيانات هذا الطالب؟ لا يمكن التراجع عن هذا الإجراء.</p>
+    <div class="flex gap-3">
+      <button onclick="confirmDelete()" class="flex-1 h-10 rounded-lg bg-red-600 text-white text-sm font-bold hover:bg-red-700">حذف</button>
+      <button onclick="closeDeleteModal()" class="flex-1 h-10 rounded-lg border border-slate-300 text-sm font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SETTINGS MODAL (change password) ============ -->
+<div id="settingsModal" class="fixed inset-0 z-40 flex items-center justify-center p-4 modal-backdrop" hidden>
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+    <h3 class="text-sm font-bold text-navy mb-4">تغيير كلمة مرور المشرف</h3>
+    <div class="space-y-3">
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1.5">كلمة المرور الحالية</label>
+        <input type="password" id="currentPasswordInput" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1.5">كلمة المرور الجديدة (6 أحرف على الأقل)</label>
+        <input type="password" id="newPasswordInput" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm outline-none focus:border-navy">
+      </div>
+    </div>
+    <p class="text-xs mt-3 min-h-[16px]" id="passwordChangeMsg"></p>
+    <div class="flex gap-3 mt-4">
+      <button onclick="changePassword()" class="flex-1 h-10 rounded-lg bg-navy text-white text-sm font-bold hover:bg-slate-800">حفظ</button>
+      <button onclick="closeSettingsModal()" class="flex-1 h-10 rounded-lg border border-slate-300 text-sm font-bold text-slate-600 hover:bg-slate-50">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-5 py-3 rounded-xl shadow-xl opacity-0 pointer-events-none transition-opacity z-50"></div>
 
 <script>
+/* ==================== STATE ==================== */
 const GRADE_CODE_MAP = { 330: 'الثالث الابتدائي', 430: 'الرابع الابتدائي', 530: 'الخامس الابتدائي', 630: 'السادس الابتدائي' };
 const COLUMN_ALIASES = {
-  id: ['رقم الطالب', 'رقم الهوية'],
+  id: ['رقم الطالب', 'رقم الهوية', 'الهوية'],
   name: ['اسم الطالب', 'الاسم'],
-  grade: ['رقم الصف', 'الصف'],
-  class: ['الفصل'],
-  phone: ['الجوال', 'رقم الجوال'],
+  grade: ['رقم الصف', 'الصف', 'رمز الصف'],
+  class: ['الفصل', 'رقم الفصل'],
+  phone: ['الجوال', 'رقم الجوال', 'جوال ولي الأمر'],
 };
 
-let currentTab = 'import';
 let workbook = null;
-let parsedRows = [];
+let sheetColumns = [];   // [{idx, label}]
+let sheetDataRows = [];  // raw rows after header row
+let parsedRows = [];     // mapped + cleaned rows ready for import
 let studentsPage = 1;
 let studentsTotal = 0;
+let deleteTargetId = null;
 const PAGE_SIZE = 50;
+
+/* ==================== HELPERS ==================== */
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = String(s ?? '');
+  return d.innerHTML;
+}
 
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  t.classList.remove('opacity-0');
+  t.classList.add('opacity-100');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.classList.remove('opacity-100'); t.classList.add('opacity-0'); }, 2500);
+}
+
+function setDbStatus(ok) {
+  const dot = document.getElementById('dbStatusDot');
+  const text = document.getElementById('dbStatusText');
+  if (!dot) return;
+  dot.className = 'w-2 h-2 rounded-full ' + (ok ? 'bg-emerald-500' : 'bg-red-500');
+  text.textContent = ok ? 'متصل بقاعدة البيانات' : 'تعذر الاتصال';
 }
 
 async function api(path, opts) {
-  const res = await fetch(path, Object.assign({ credentials: 'same-origin' }, opts || {}));
+  let res;
+  try {
+    res = await fetch(path, Object.assign({ credentials: 'same-origin' }, opts || {}));
+  } catch (e) {
+    setDbStatus(false);
+    throw Object.assign(new Error('network_error'), { status: 0 });
+  }
   let data = null;
   try { data = await res.json(); } catch (_) {}
+  setDbStatus(true);
   if (!res.ok) {
     const err = new Error((data && data.error) || 'request_failed');
     err.status = res.status;
@@ -320,6 +448,7 @@ async function api(path, opts) {
   return data;
 }
 
+/* ==================== AUTH ==================== */
 async function checkSession() {
   try {
     const data = await api('/api/admin/session');
@@ -328,9 +457,9 @@ async function checkSession() {
 }
 
 function showApp() {
-  document.getElementById('loginCard').style.display = 'none';
-  document.getElementById('app').classList.add('visible');
-  loadVisibility();
+  document.getElementById('loginView').hidden = true;
+  document.getElementById('appView').hidden = false;
+  loadMetricsAndVisibility();
   loadGradeOptions();
   reloadStudents(1);
 }
@@ -350,7 +479,6 @@ async function doLogin() {
     btn.disabled = false;
   }
 }
-
 document.getElementById('passwordInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
 async function doLogout() {
@@ -358,193 +486,59 @@ async function doLogout() {
   location.reload();
 }
 
-async function changePassword() {
-  const currentPassword = document.getElementById('currentPasswordInput').value;
-  const newPassword = document.getElementById('newPasswordInput').value;
-  const msgEl = document.getElementById('passwordChangeMsg');
-  msgEl.textContent = '';
-  msgEl.style.color = '';
-
-  try {
-    await api('/api/admin/change_password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ currentPassword, newPassword }),
-    });
-    document.getElementById('currentPasswordInput').value = '';
-    document.getElementById('newPasswordInput').value = '';
-    msgEl.style.color = '#bbf7d0';
-    msgEl.textContent = 'تم تغيير كلمة المرور بنجاح';
-  } catch (e) {
-    if (e.data && e.data.error === 'weak_password') msgEl.textContent = 'كلمة المرور الجديدة قصيرة جداً';
-    else if (e.data && e.data.error === 'invalid_current_password') msgEl.textContent = 'كلمة المرور الحالية غير صحيحة';
-    else msgEl.textContent = 'حدث خطأ، حاول مرة أخرى';
-  }
-}
-
+/* ==================== TABS ==================== */
 function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    const active = b.dataset.tab === tab;
+    b.classList.toggle('border-navy', active);
+    b.classList.toggle('text-navy', active);
+    b.classList.toggle('border-transparent', !active);
+    b.classList.toggle('text-slate-500', !active);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => { p.hidden = p.id !== 'panel-' + tab; });
 }
 
-/* ---------- IMPORT ---------- */
-
-function normalizeGrade(raw) {
-  const digits = String(raw).replace(/[^0-9]/g, '');
-  const num = parseInt(digits, 10);
-  return GRADE_CODE_MAP[num] || String(raw).trim();
-}
-
-function findColumnIndex(headerRow, aliases) {
-  for (let i = 0; i < headerRow.length; i++) {
-    const cell = String(headerRow[i] || '').trim();
-    if (aliases.includes(cell)) return i;
-  }
-  return -1;
-}
-
-function handleFile(evt) {
-  const file = evt.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    workbook = XLSX.read(e.target.result, { type: 'array' });
-    const tabsWrap = document.getElementById('sheetTabsWrap');
-    const tabsEl = document.getElementById('sheetTabs');
-    tabsEl.innerHTML = '';
-    workbook.SheetNames.forEach((name, idx) => {
-      const btn = document.createElement('button');
-      btn.className = 'sheet-tab' + (idx === 0 ? ' active' : '');
-      btn.textContent = name;
-      btn.onclick = () => {
-        document.querySelectorAll('.sheet-tab').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        parseSheet(name);
-      };
-      tabsEl.appendChild(btn);
-    });
-    tabsWrap.style.display = workbook.SheetNames.length > 1 ? 'block' : 'none';
-    parseSheet(workbook.SheetNames[0]);
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-function parseSheet(sheetName) {
-  const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
-  if (rows.length < 2) { toast('الورقة فارغة أو بدون بيانات'); return; }
-
-  const header = rows[0];
-  const idIdx = findColumnIndex(header, COLUMN_ALIASES.id);
-  const nameIdx = findColumnIndex(header, COLUMN_ALIASES.name);
-  const gradeIdx = findColumnIndex(header, COLUMN_ALIASES.grade);
-  const classIdx = findColumnIndex(header, COLUMN_ALIASES.class);
-  const phoneIdx = findColumnIndex(header, COLUMN_ALIASES.phone);
-
-  if (idIdx === -1 || nameIdx === -1 || gradeIdx === -1 || classIdx === -1) {
-    toast('تعذر التعرف على أعمدة الملف، تحقق من رؤوس الأعمدة');
-    document.getElementById('previewWrap').style.display = 'none';
-    return;
-  }
-
-  parsedRows = [];
-  for (let i = 1; i < rows.length; i++) {
-    const row = rows[i];
-    const id = String(row[idIdx] || '').trim();
-    const name = String(row[nameIdx] || '').trim();
-    if (!id || !name) continue;
-    parsedRows.push({
-      id, name,
-      grade: normalizeGrade(row[gradeIdx]),
-      class: String(row[classIdx] || '').trim(),
-      phone: phoneIdx !== -1 ? String(row[phoneIdx] || '').trim() : '',
-    });
-  }
-
-  renderPreview();
-}
-
-function renderPreview() {
-  const wrap = document.getElementById('previewWrap');
-  wrap.style.display = parsedRows.length ? 'block' : 'none';
-  if (!parsedRows.length) { toast('لم يتم العثور على صفوف صالحة'); return; }
-
-  const byGrade = {};
-  parsedRows.forEach(r => { byGrade[r.grade] = (byGrade[r.grade] || 0) + 1; });
-
-  const grid = document.getElementById('summaryGrid');
-  grid.innerHTML = `<div class="summary-item"><div class="n">${parsedRows.length}</div><div class="l">إجمالي الطلاب</div></div>` +
-    Object.entries(byGrade).map(([g, c]) => `<div class="summary-item"><div class="n">${c}</div><div class="l">${escHtml(g)}</div></div>`).join('');
-
-  const select = document.getElementById('targetGradeSelect');
-  select.innerHTML = Object.keys(byGrade).map(g => `<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
-
-  document.getElementById('importError').textContent = '';
-}
-
-function onModeChange() {
-  const mode = document.querySelector('input[name=importMode]:checked').value;
-  document.getElementById('targetGradeSelect').style.display = mode === 'replace_grade' ? 'block' : 'none';
-}
-
-async function confirmImport() {
-  const mode = document.querySelector('input[name=importMode]:checked').value;
-  const grade = mode === 'replace_grade' ? document.getElementById('targetGradeSelect').value : undefined;
-  const btn = document.getElementById('confirmImportBtn');
-  const errEl = document.getElementById('importError');
-  errEl.textContent = '';
-
-  const msg = mode === 'replace_all'
-    ? `سيتم استبدال جميع بيانات الطلاب الحالية بعدد ${parsedRows.length} طالب. هل أنت متأكد؟`
-    : `سيتم استبدال بيانات صف "${grade}" فقط. هل أنت متأكد؟`;
-  if (!confirm(msg)) return;
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner-inline"></span> جارٍ الحفظ...';
-  try {
-    const data = await api('/api/admin/import', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode, grade, rows: parsedRows }),
-    });
-    toast(`تم استيراد ${data.imported} طالب بنجاح`);
-    loadVisibility();
-    loadGradeOptions();
-    reloadStudents(1);
-  } catch (e) {
-    errEl.textContent = 'حدث خطأ أثناء الاستيراد';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'تأكيد الاستيراد والحفظ';
-  }
-}
-
-function escHtml(s) {
-  const d = document.createElement('div');
-  d.textContent = String(s ?? '');
-  return d.innerHTML;
-}
-
-/* ---------- VISIBILITY ---------- */
-
-async function loadVisibility() {
+/* ==================== METRICS + VISIBILITY ==================== */
+async function loadMetricsAndVisibility() {
   try {
     const data = await api('/api/admin/visibility');
-    const body = document.getElementById('visibilityBody');
-    body.innerHTML = data.items.map(item => `
-      <tr>
-        <td>${escHtml(item.grade)}</td>
-        <td>فصل ${escHtml(item.class)}</td>
-        <td>${item.student_count}</td>
-        <td>
-          <label class="switch">
-            <input type="checkbox" ${item.enabled ? 'checked' : ''} onchange="toggleVisibility('${encodeURIComponent(item.grade)}','${encodeURIComponent(item.class)}',this.checked)">
-            <span class="slider"></span>
-          </label>
-        </td>
-      </tr>`).join('');
+    const items = data.items || [];
+    const totalStudents = items.reduce((sum, i) => sum + i.student_count, 0);
+    const grades = [...new Set(items.map(i => i.grade))];
+    const enabledCount = items.filter(i => i.enabled).length;
+    const disabledCount = items.length - enabledCount;
+
+    document.getElementById('metricTotalStudents').textContent = totalStudents.toLocaleString('ar');
+    document.getElementById('metricGrades').textContent = grades.length.toLocaleString('ar');
+    document.getElementById('metricClasses').textContent = items.length.toLocaleString('ar');
+    document.getElementById('metricSystemStatus').textContent = enabledCount.toLocaleString('ar');
+    document.getElementById('metricSystemSub').textContent = disabledCount > 0
+      ? `فصول مفعّلة (${disabledCount} محجوبة)`
+      : 'كل الفصول متاحة للاستعلام';
+
+    renderVisibilityGrid(items);
   } catch (_) {}
+}
+
+function renderVisibilityGrid(items) {
+  const byGrade = {};
+  items.forEach(i => { (byGrade[i.grade] = byGrade[i.grade] || []).push(i); });
+
+  const grid = document.getElementById('visibilityGrid');
+  grid.innerHTML = Object.entries(byGrade).map(([grade, classes]) => `
+    <div class="border border-slate-200 rounded-xl p-4">
+      <div class="text-sm font-bold text-slate-800 mb-3">${escHtml(grade)}</div>
+      <div class="space-y-2.5">
+        ${classes.map(c => `
+          <div class="flex items-center justify-between">
+            <div class="text-xs text-slate-600">فصل ${escHtml(c.class)} <span class="text-slate-400">(${c.student_count})</span></div>
+            <label class="toggle">
+              <input type="checkbox" ${c.enabled ? 'checked' : ''} onchange="toggleVisibility('${encodeURIComponent(grade)}','${encodeURIComponent(c.class)}',this.checked)">
+              <span class="track"></span>
+            </label>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
 }
 
 async function toggleVisibility(gradeEnc, classEnc, enabled) {
@@ -556,15 +550,226 @@ async function toggleVisibility(gradeEnc, classEnc, enabled) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ grade, class: klass, enabled }),
     });
-    toast(enabled ? 'تم تفعيل الاستعلام' : 'تم تعطيل الاستعلام');
+    toast(enabled ? `تم تفعيل استعلام فصل ${klass} - ${grade}` : `تم تعطيل استعلام فصل ${klass} - ${grade}`);
+    loadMetricsAndVisibility();
   } catch (_) {
     toast('حدث خطأ، حاول مرة أخرى');
-    loadVisibility();
+    loadMetricsAndVisibility();
   }
 }
 
-/* ---------- STUDENTS ---------- */
+/* ==================== IMPORT WIZARD ==================== */
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const circle = document.querySelector(`[data-step="${i}"] .step-circle`);
+    const label = document.querySelector(`[data-step="${i}"] span`);
+    const line = document.querySelector(`[data-line="${i}"]`);
+    const done = i < n, current = i === n;
+    circle.className = 'step-circle ' + (done || current ? 'bg-navy text-white' : 'bg-slate-200 text-slate-500');
+    label.className = (done || current ? 'text-[11px] font-semibold text-slate-600' : 'text-[11px] font-semibold text-slate-400');
+    if (line) line.classList.toggle('done', i < n);
+  }
+}
 
+const dropzone = document.getElementById('dropzone');
+dropzone.addEventListener('click', () => document.getElementById('fileInput').click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('border-navy', 'bg-slate-50'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('border-navy', 'bg-slate-50'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('border-navy', 'bg-slate-50');
+  if (e.dataTransfer.files[0]) loadWorkbookFile(e.dataTransfer.files[0]);
+});
+
+function handleFile(evt) {
+  if (evt.target.files[0]) loadWorkbookFile(evt.target.files[0]);
+}
+
+function loadWorkbookFile(file) {
+  document.getElementById('fileNameLabel').textContent = file.name;
+  document.getElementById('fileNameRow').hidden = false;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    workbook = XLSX.read(e.target.result, { type: 'array' });
+    const sheetSelect = document.getElementById('sheetSelect');
+    sheetSelect.innerHTML = workbook.SheetNames.map(n => `<option value="${escHtml(n)}">${escHtml(n)}</option>`).join('');
+    document.getElementById('sheetSelectRow').hidden = workbook.SheetNames.length < 2;
+    parseSheet(workbook.SheetNames[0]);
+    setStep(2);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/** Noor exports often have blank/merged rows before the real header —
+ * scan the first 10 rows for one containing the known column names. */
+function detectHeaderRowIndex(rows) {
+  const allAliases = [].concat(...Object.values(COLUMN_ALIASES));
+  const limit = Math.min(10, rows.length);
+  for (let i = 0; i < limit; i++) {
+    const cells = (rows[i] || []).map(c => String(c || '').trim());
+    const hits = cells.filter(c => allAliases.includes(c)).length;
+    if (hits >= 2) return i;
+  }
+  return 0;
+}
+
+function findColumnIndex(columns, aliases) {
+  const match = columns.find(c => aliases.includes(c.label));
+  return match ? match.idx : '';
+}
+
+function parseSheet(sheetName) {
+  const sheet = workbook.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+  if (rows.length < 2) { toast('الورقة فارغة أو بدون بيانات'); return; }
+
+  const headerIdx = detectHeaderRowIndex(rows);
+  const header = rows[headerIdx];
+  sheetDataRows = rows.slice(headerIdx + 1).filter(r => r.some(c => String(c || '').trim() !== ''));
+
+  sheetColumns = header
+    .map((h, idx) => ({ idx, label: String(h || '').trim() || `عمود ${idx + 1}` }))
+    .filter((c, i) => header[i] !== undefined);
+
+  const options = ['<option value="">-- اختر عموداً --</option>']
+    .concat(sheetColumns.map(c => `<option value="${c.idx}">${escHtml(c.label)}</option>`))
+    .join('');
+
+  ['mapId', 'mapName', 'mapGrade', 'mapClass', 'mapPhone'].forEach(id => {
+    document.getElementById(id).innerHTML = options;
+  });
+  document.getElementById('mapId').value = findColumnIndex(sheetColumns, COLUMN_ALIASES.id);
+  document.getElementById('mapName').value = findColumnIndex(sheetColumns, COLUMN_ALIASES.name);
+  document.getElementById('mapGrade').value = findColumnIndex(sheetColumns, COLUMN_ALIASES.grade);
+  document.getElementById('mapClass').value = findColumnIndex(sheetColumns, COLUMN_ALIASES.class);
+  document.getElementById('mapPhone').value = findColumnIndex(sheetColumns, COLUMN_ALIASES.phone);
+
+  document.getElementById('mappingCard').hidden = false;
+  onMappingChange();
+}
+
+function normalizeGrade(raw) {
+  const digits = String(raw).replace(/[^0-9]/g, '');
+  const num = parseInt(digits, 10);
+  return GRADE_CODE_MAP[num] || String(raw).trim();
+}
+
+function onMappingChange() {
+  const idIdx = document.getElementById('mapId').value;
+  const nameIdx = document.getElementById('mapName').value;
+  const gradeIdx = document.getElementById('mapGrade').value;
+  const classIdx = document.getElementById('mapClass').value;
+  const phoneIdx = document.getElementById('mapPhone').value;
+
+  const errEl = document.getElementById('mappingError');
+  if (idIdx === '' || nameIdx === '' || gradeIdx === '' || classIdx === '') {
+    errEl.textContent = 'الرجاء تحديد الأعمدة الأساسية الأربعة قبل المتابعة';
+    document.getElementById('previewCard').hidden = true;
+    document.getElementById('actionCard').hidden = true;
+    setStep(2);
+    return;
+  }
+  errEl.textContent = '';
+
+  parsedRows = [];
+  for (const row of sheetDataRows) {
+    const id = String(row[idIdx] || '').trim();
+    const name = String(row[nameIdx] || '').trim();
+    if (!id || !name) continue;
+    parsedRows.push({
+      id, name,
+      grade: normalizeGrade(row[gradeIdx]),
+      class: String(row[classIdx] || '').trim(),
+      phone: phoneIdx !== '' ? String(row[phoneIdx] || '').trim() : '',
+    });
+  }
+
+  renderPreview();
+}
+
+function renderPreview() {
+  const previewCard = document.getElementById('previewCard');
+  const actionCard = document.getElementById('actionCard');
+  if (!parsedRows.length) {
+    previewCard.hidden = true;
+    actionCard.hidden = true;
+    document.getElementById('mappingError').textContent = 'لم يتم العثور على صفوف صالحة بهذه المطابقة';
+    setStep(2);
+    return;
+  }
+
+  const tbody = document.getElementById('previewTableBody');
+  tbody.innerHTML = parsedRows.slice(0, 5).map((r, i) => `
+    <tr class="${i % 2 ? 'bg-slate-50' : ''}">
+      <td class="px-3 py-2 text-slate-700">${escHtml(r.id)}</td>
+      <td class="px-3 py-2 text-slate-700">${escHtml(r.name)}</td>
+      <td class="px-3 py-2 text-slate-700">${escHtml(r.grade)}</td>
+      <td class="px-3 py-2 text-slate-700">${escHtml(r.class)}</td>
+      <td class="px-3 py-2 text-slate-500">${escHtml(r.phone || '-')}</td>
+    </tr>`).join('');
+
+  const gradeCount = new Set(parsedRows.map(r => r.grade)).size;
+  document.getElementById('previewSummary').textContent =
+    `تم اكتشاف ${parsedRows.length.toLocaleString('ar')} طالب موزعين على ${gradeCount.toLocaleString('ar')} ${gradeCount === 1 ? 'صف دراسي' : 'صفوف دراسية'}`;
+
+  const byGrade = {};
+  parsedRows.forEach(r => { byGrade[r.grade] = (byGrade[r.grade] || 0) + 1; });
+  document.getElementById('targetGradeSelect').innerHTML =
+    Object.keys(byGrade).map(g => `<option value="${escHtml(g)}">${escHtml(g)} (${byGrade[g]})</option>`).join('');
+
+  previewCard.hidden = false;
+  actionCard.hidden = false;
+  setStep(4);
+}
+
+function onModeChange() {
+  const mode = document.querySelector('input[name=importMode]:checked').value;
+  const gradeSelect = document.getElementById('targetGradeSelect');
+  gradeSelect.disabled = mode !== 'replace_grade';
+  document.getElementById('radioCardAll').classList.toggle('border-navy', mode === 'replace_all');
+  document.getElementById('radioCardAll').classList.toggle('border-slate-200', mode !== 'replace_all');
+  document.getElementById('radioCardGrade').classList.toggle('border-navy', mode === 'replace_grade');
+  document.getElementById('radioCardGrade').classList.toggle('border-slate-200', mode !== 'replace_grade');
+}
+onModeChange();
+
+async function confirmImport() {
+  const mode = document.querySelector('input[name=importMode]:checked').value;
+  const grade = mode === 'replace_grade' ? document.getElementById('targetGradeSelect').value : undefined;
+  const btn = document.getElementById('confirmImportBtn');
+  const errEl = document.getElementById('importError');
+  errEl.textContent = '';
+
+  const msg = mode === 'replace_all'
+    ? `سيتم حذف جميع بيانات الطلاب الحالية واستبدالها بعدد ${parsedRows.length} طالب. هل أنت متأكد؟`
+    : `سيتم استبدال بيانات صف "${grade}" فقط وإبقاء بقية الصفوف كما هي. هل أنت متأكد؟`;
+  if (!confirm(msg)) return;
+
+  btn.disabled = true;
+  document.getElementById('confirmImportLabel').textContent = 'جارٍ الحفظ...';
+  document.getElementById('importProgressWrap').classList.remove('hidden');
+
+  try {
+    const data = await api('/api/admin/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode, grade, rows: parsedRows }),
+    });
+    toast(`تم استيراد ${data.imported} طالب بنجاح`);
+    loadMetricsAndVisibility();
+    loadGradeOptions();
+    reloadStudents(1);
+  } catch (e) {
+    errEl.textContent = 'حدث خطأ أثناء الاستيراد، حاول مرة أخرى';
+  } finally {
+    btn.disabled = false;
+    document.getElementById('confirmImportLabel').textContent = 'بدء الاستيراد وحفظ البيانات';
+    document.getElementById('importProgressWrap').classList.add('hidden');
+  }
+}
+
+/* ==================== STUDENTS DIRECTORY ==================== */
 async function loadGradeOptions() {
   try {
     const data = await api('/api/admin/visibility');
@@ -572,10 +777,10 @@ async function loadGradeOptions() {
     const classes = [...new Set(data.items.map(i => i.class))];
     const gSel = document.getElementById('filterGrade');
     const cSel = document.getElementById('filterClass');
-    const currentG = gSel.value, currentC = cSel.value;
+    const curG = gSel.value, curC = cSel.value;
     gSel.innerHTML = '<option value="">كل الصفوف</option>' + grades.map(g => `<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
     cSel.innerHTML = '<option value="">كل الفصول</option>' + classes.map(c => `<option value="${escHtml(c)}">فصل ${escHtml(c)}</option>`).join('');
-    gSel.value = currentG; cSel.value = currentC;
+    gSel.value = curG; cSel.value = curC;
   } catch (_) {}
 }
 
@@ -604,107 +809,111 @@ async function reloadStudents(page) {
   } catch (_) {}
 }
 
+let studentsCache = [];
+
 function renderStudents(students) {
+  studentsCache = students;
   const body = document.getElementById('studentsBody');
-  body.innerHTML = students.map(s => `
-    <tr data-id="${s._id}">
-      <td>${escHtml(s.id)}</td>
-      <td>${escHtml(s.name)}</td>
-      <td>${escHtml(s.grade)}</td>
-      <td>${escHtml(s.class)}</td>
-      <td>${escHtml(s.phone || '-')}</td>
-      <td style="display:flex;gap:6px">
-        <button class="btn btn-outline btn-small" onclick="editRow(${s._id})">تعديل</button>
-        <button class="btn btn-danger btn-small" onclick="deleteRow(${s._id})">حذف</button>
+  if (!students.length) {
+    body.innerHTML = `<tr><td colspan="6" class="text-center text-slate-400 text-sm py-8">لا توجد نتائج</td></tr>`;
+    return;
+  }
+  body.innerHTML = students.map((s, i) => `
+    <tr class="${i % 2 ? 'bg-slate-50' : ''} border-t border-slate-100">
+      <td class="px-3 py-2.5 text-slate-700">${escHtml(s.id)}</td>
+      <td class="px-3 py-2.5 text-slate-700 font-medium">${escHtml(s.name)}</td>
+      <td class="px-3 py-2.5 text-slate-600">${escHtml(s.grade)}</td>
+      <td class="px-3 py-2.5 text-slate-600">${escHtml(s.class)}</td>
+      <td class="px-3 py-2.5 text-slate-500">${escHtml(s.phone || '-')}</td>
+      <td class="px-3 py-2.5">
+        <div class="flex justify-end gap-2">
+          <button onclick="openStudentModalFromCache(${i})" class="text-xs font-bold text-slate-600 hover:text-navy px-2 py-1">تعديل</button>
+          <button onclick="openDeleteModal(${s._id})" class="text-xs font-bold text-red-600 hover:text-red-700 px-2 py-1">حذف</button>
+        </div>
       </td>
     </tr>`).join('');
 }
 
+function openStudentModalFromCache(index) {
+  openStudentModal(studentsCache[index]);
+}
+
 function renderPagination() {
   const totalPages = Math.max(1, Math.ceil(studentsTotal / PAGE_SIZE));
-  const el = document.getElementById('pagination');
-  el.innerHTML = `
-    <button class="btn btn-outline btn-small" ${studentsPage <= 1 ? 'disabled' : ''} onclick="reloadStudents(${studentsPage - 1})">السابق</button>
-    <span>صفحة ${studentsPage} من ${totalPages} (${studentsTotal} طالب)</span>
-    <button class="btn btn-outline btn-small" ${studentsPage >= totalPages ? 'disabled' : ''} onclick="reloadStudents(${studentsPage + 1})">التالي</button>`;
+  document.getElementById('pagination').innerHTML = `
+    <button onclick="reloadStudents(${studentsPage - 1})" ${studentsPage <= 1 ? 'disabled' : ''} class="h-8 px-3 rounded-lg border border-slate-300 text-xs font-bold disabled:opacity-40 hover:bg-slate-50">السابق</button>
+    <span>صفحة ${studentsPage.toLocaleString('ar')} من ${totalPages.toLocaleString('ar')} — ${studentsTotal.toLocaleString('ar')} طالب</span>
+    <button onclick="reloadStudents(${studentsPage + 1})" ${studentsPage >= totalPages ? 'disabled' : ''} class="h-8 px-3 rounded-lg border border-slate-300 text-xs font-bold disabled:opacity-40 hover:bg-slate-50">التالي</button>`;
 }
 
-function editRow(id) {
-  const row = document.querySelector(`tr[data-id="${id}"]`);
-  const cells = row.querySelectorAll('td');
-  const values = [cells[0].textContent, cells[1].textContent, cells[2].textContent, cells[3].textContent, cells[4].textContent === '-' ? '' : cells[4].textContent];
-  row.innerHTML = `
-    <td><input class="edit-input" value="${escHtml(values[0])}" data-f="id"></td>
-    <td><input class="edit-input" value="${escHtml(values[1])}" data-f="name"></td>
-    <td><input class="edit-input" value="${escHtml(values[2])}" data-f="grade"></td>
-    <td><input class="edit-input" value="${escHtml(values[3])}" data-f="class"></td>
-    <td><input class="edit-input" value="${escHtml(values[4])}" data-f="phone"></td>
-    <td style="display:flex;gap:6px">
-      <button class="btn btn-small" onclick="saveRow(${id})">حفظ</button>
-      <button class="btn btn-outline btn-small" onclick="reloadStudents(${studentsPage})">إلغاء</button>
-    </td>`;
+/* ---- Student modal (add/edit) ---- */
+function openStudentModal(student) {
+  document.getElementById('studentModalError').textContent = '';
+  document.getElementById('studentModalTitle').textContent = student ? 'تعديل بيانات طالب' : 'إضافة طالب';
+  document.getElementById('studentModalRowId').value = student ? student._id : '';
+  document.getElementById('studentModalId').value = student ? student.id : '';
+  document.getElementById('studentModalName').value = student ? student.name : '';
+  document.getElementById('studentModalGrade').value = student ? student.grade : '';
+  document.getElementById('studentModalClass').value = student ? student.class : '';
+  document.getElementById('studentModalPhone').value = student ? (student.phone || '') : '';
+  document.getElementById('studentModal').hidden = false;
 }
+function closeStudentModal() { document.getElementById('studentModal').hidden = true; }
 
-async function saveRow(id) {
-  const row = document.querySelector(`tr[data-id="${id}"]`);
-  const inputs = row.querySelectorAll('input[data-f]');
-  const payload = { _id: id };
-  inputs.forEach(inp => { payload[inp.dataset.f] = inp.value.trim(); });
-
-  try {
-    await api('/api/admin/students', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    toast('تم الحفظ');
-    reloadStudents(studentsPage);
-    loadVisibility();
-    loadGradeOptions();
-  } catch (_) {
-    toast('حدث خطأ أثناء الحفظ');
-  }
-}
-
-async function deleteRow(id) {
-  if (!confirm('هل أنت متأكد من حذف هذا الطالب؟')) return;
-  try {
-    await api('/api/admin/students?_id=' + id, { method: 'DELETE' });
-    toast('تم الحذف');
-    reloadStudents(studentsPage);
-    loadVisibility();
-    loadGradeOptions();
-  } catch (_) {
-    toast('حدث خطأ أثناء الحذف');
-  }
-}
-
-function showAddRow() {
-  const body = document.getElementById('studentsBody');
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td><input class="edit-input" placeholder="رقم الهوية" data-f="id"></td>
-    <td><input class="edit-input" placeholder="الاسم" data-f="name"></td>
-    <td><input class="edit-input" placeholder="الصف" data-f="grade"></td>
-    <td><input class="edit-input" placeholder="الفصل" data-f="class"></td>
-    <td><input class="edit-input" placeholder="الجوال" data-f="phone"></td>
-    <td style="display:flex;gap:6px">
-      <button class="btn btn-small" id="saveNewBtn">حفظ</button>
-      <button class="btn btn-outline btn-small" onclick="reloadStudents(studentsPage)">إلغاء</button>
-    </td>`;
-  body.prepend(tr);
-  tr.querySelector('#saveNewBtn').onclick = async () => {
-    const inputs = tr.querySelectorAll('input[data-f]');
-    const payload = {};
-    inputs.forEach(inp => { payload[inp.dataset.f] = inp.value.trim(); });
-    try {
-      await api('/api/admin/students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      toast('تمت الإضافة');
-      reloadStudents(1);
-      loadVisibility();
-      loadGradeOptions();
-    } catch (_) {
-      toast('تعذرت الإضافة، تحقق من الحقول');
-    }
+async function saveStudentModal() {
+  const rowId = document.getElementById('studentModalRowId').value;
+  const payload = {
+    id: document.getElementById('studentModalId').value.trim(),
+    name: document.getElementById('studentModalName').value.trim(),
+    grade: document.getElementById('studentModalGrade').value.trim(),
+    class: document.getElementById('studentModalClass').value.trim(),
+    phone: document.getElementById('studentModalPhone').value.trim(),
   };
+  if (!payload.id || !payload.name || !payload.grade || !payload.class) {
+    document.getElementById('studentModalError').textContent = 'جميع الحقول مطلوبة عدا الجوال';
+    return;
+  }
+  try {
+    if (rowId) {
+      await api('/api/admin/students', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ _id: Number(rowId) }, payload)) });
+    } else {
+      await api('/api/admin/students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    }
+    toast('تم الحفظ بنجاح');
+    closeStudentModal();
+    reloadStudents(rowId ? studentsPage : 1);
+    loadMetricsAndVisibility();
+    loadGradeOptions();
+  } catch (e) {
+    document.getElementById('studentModalError').textContent = 'تعذر الحفظ، تحقق من البيانات';
+  }
 }
 
+/* ---- Delete modal ---- */
+function openDeleteModal(rowId) {
+  deleteTargetId = rowId;
+  document.getElementById('deleteModal').hidden = false;
+}
+function closeDeleteModal() {
+  deleteTargetId = null;
+  document.getElementById('deleteModal').hidden = true;
+}
+async function confirmDelete() {
+  if (!deleteTargetId) return;
+  try {
+    await api('/api/admin/students?_id=' + deleteTargetId, { method: 'DELETE' });
+    toast('تم حذف الطالب');
+    closeDeleteModal();
+    reloadStudents(studentsPage);
+    loadMetricsAndVisibility();
+    loadGradeOptions();
+  } catch (_) {
+    toast('تعذر حذف الطالب');
+    closeDeleteModal();
+  }
+}
+
+/* ---- Export ---- */
 async function exportExcel() {
   const grade = document.getElementById('filterGrade').value;
   const klass = document.getElementById('filterClass').value;
@@ -728,6 +937,41 @@ async function exportExcel() {
   }
 }
 
+/* ==================== SETTINGS (change password) ==================== */
+function openSettingsModal() {
+  document.getElementById('currentPasswordInput').value = '';
+  document.getElementById('newPasswordInput').value = '';
+  document.getElementById('passwordChangeMsg').textContent = '';
+  document.getElementById('settingsModal').hidden = false;
+}
+function closeSettingsModal() { document.getElementById('settingsModal').hidden = true; }
+
+async function changePassword() {
+  const currentPassword = document.getElementById('currentPasswordInput').value;
+  const newPassword = document.getElementById('newPasswordInput').value;
+  const msgEl = document.getElementById('passwordChangeMsg');
+  msgEl.textContent = '';
+  msgEl.className = 'text-xs mt-3 min-h-[16px]';
+
+  try {
+    await api('/api/admin/change_password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    msgEl.classList.add('text-emerald-600');
+    msgEl.textContent = 'تم تغيير كلمة المرور بنجاح';
+    document.getElementById('currentPasswordInput').value = '';
+    document.getElementById('newPasswordInput').value = '';
+  } catch (e) {
+    msgEl.classList.add('text-red-600');
+    if (e.data && e.data.error === 'weak_password') msgEl.textContent = 'كلمة المرور الجديدة قصيرة جداً';
+    else if (e.data && e.data.error === 'invalid_current_password') msgEl.textContent = 'كلمة المرور الحالية غير صحيحة';
+    else msgEl.textContent = 'حدث خطأ، حاول مرة أخرى';
+  }
+}
+
+/* ==================== INIT ==================== */
 checkSession();
 </script>
 </body>
