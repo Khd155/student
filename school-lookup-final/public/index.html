@@ -246,7 +246,7 @@ body{
     <div class="input-row">
       <div class="input-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <input type="text" id="idInput" class="id-input" placeholder="أدخل رقم الهوية" inputmode="numeric" pattern="[0-9]*" maxlength="20" autocomplete="off">
+        <input type="text" id="idInput" class="id-input" placeholder="أدخل رقم الهوية" inputmode="text" pattern="[0-9\-]*" maxlength="20" autocomplete="off">
       </div>
       <button class="search-btn" id="searchBtn" onclick="doSearch()" aria-label="بحث">
         <svg id="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -403,7 +403,7 @@ async function doSearch(){
 }
 
 document.getElementById('idInput').addEventListener('input', e => {
-  e.target.value = e.target.value.replace(/[^0-9]/g, '');
+  e.target.value = e.target.value.replace(/[^0-9-]/g, '');
 });
 
 document.getElementById('idInput').addEventListener('keydown', e => {
