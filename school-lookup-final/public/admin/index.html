@@ -95,7 +95,7 @@ tailwind.config = {
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
     <!-- METRICS -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
         <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6-4a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
@@ -123,6 +123,37 @@ tailwind.config = {
         </div>
         <div class="text-2xl font-extrabold text-navy" id="metricSystemStatus">-</div>
         <div class="text-xs text-slate-500 mt-1" id="metricSystemSub">حالة النظام</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+        <div class="w-9 h-9 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+        <div class="text-2xl font-extrabold text-navy" id="metricTotalSearches">-</div>
+        <div class="text-xs text-slate-500 mt-1" id="metricSearchesSub">إجمالي عمليات البحث</div>
+      </div>
+    </div>
+
+    <!-- SEARCH ANALYTICS -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-bold text-navy">سجل البحث الأخير</h3>
+        <div class="flex items-center gap-4 text-xs text-slate-500">
+          <span>ناجح: <b class="text-emerald-600" id="statSuccessful">-</b></span>
+          <span>غير ناجح: <b class="text-red-500" id="statFailed">-</b></span>
+          <span>هويات فريدة: <b class="text-navy" id="statUnique">-</b></span>
+        </div>
+      </div>
+      <div class="overflow-x-auto rounded-lg border border-slate-200">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="text-right px-3 py-2 text-xs font-bold text-slate-500">رقم الهوية</th>
+              <th class="text-right px-3 py-2 text-xs font-bold text-slate-500">النتيجة</th>
+              <th class="text-right px-3 py-2 text-xs font-bold text-slate-500">الوقت</th>
+            </tr>
+          </thead>
+          <tbody id="recentSearchesBody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -460,6 +491,7 @@ function showApp() {
   document.getElementById('loginView').hidden = true;
   document.getElementById('appView').hidden = false;
   loadMetricsAndVisibility();
+  loadSearchStats();
   loadGradeOptions();
   reloadStudents(1);
 }
@@ -556,6 +588,49 @@ async function toggleVisibility(gradeEnc, classEnc, enabled) {
     toast('حدث خطأ، حاول مرة أخرى');
     loadMetricsAndVisibility();
   }
+}
+
+/* ==================== SEARCH ANALYTICS ==================== */
+function maskId(id){
+  const s = String(id);
+  return s.length > 6 ? s.slice(0, 4) + '••••' + s.slice(-2) : s;
+}
+
+function relativeTime(ts){
+  const diffSec = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+  if (diffSec < 60) return 'الآن';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `منذ ${diffMin.toLocaleString('ar')} ${diffMin === 1 ? 'دقيقة' : 'دقائق'}`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `منذ ${diffHour.toLocaleString('ar')} ${diffHour === 1 ? 'ساعة' : 'ساعات'}`;
+  const diffDay = Math.floor(diffHour / 24);
+  return `منذ ${diffDay.toLocaleString('ar')} ${diffDay === 1 ? 'يوم' : 'أيام'}`;
+}
+
+async function loadSearchStats() {
+  try {
+    const data = await api('/api/admin/stats');
+    document.getElementById('metricTotalSearches').textContent = data.totalSearches.toLocaleString('ar');
+    document.getElementById('statSuccessful').textContent = data.successfulSearches.toLocaleString('ar');
+    document.getElementById('statFailed').textContent = data.failedSearches.toLocaleString('ar');
+    document.getElementById('statUnique').textContent = data.uniqueSearches.toLocaleString('ar');
+
+    const body = document.getElementById('recentSearchesBody');
+    if (!data.recentSearches.length) {
+      body.innerHTML = `<tr><td colspan="3" class="text-center text-slate-400 text-sm py-6">لا توجد عمليات بحث بعد</td></tr>`;
+      return;
+    }
+    body.innerHTML = data.recentSearches.map((r, i) => `
+      <tr class="${i % 2 ? 'bg-slate-50' : ''} border-t border-slate-100">
+        <td class="px-3 py-2 text-slate-700 font-mono">${escHtml(maskId(r.national_id_searched))}</td>
+        <td class="px-3 py-2">
+          <span class="text-xs font-bold px-2 py-1 rounded-full ${r.found ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}">
+            ${r.found ? 'تم العثور' : 'لم يُعثر'}
+          </span>
+        </td>
+        <td class="px-3 py-2 text-slate-500">${escHtml(relativeTime(r.searched_at))}</td>
+      </tr>`).join('');
+  } catch (_) {}
 }
 
 /* ==================== IMPORT WIZARD ==================== */

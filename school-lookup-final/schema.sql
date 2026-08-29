@@ -47,6 +47,20 @@ CREATE TABLE IF NOT EXISTS activity_log (
   created_at INTEGER NOT NULL
 );
 
+-- Every public lookup attempt on the student page, for the admin
+-- search-analytics dashboard. ip_hash is a SHA-256 of the visitor's
+-- IP (never the raw address) so counts can be de-duplicated without
+-- storing anything identifying.
+CREATE TABLE IF NOT EXISTS search_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  national_id_searched TEXT NOT NULL,
+  found INTEGER NOT NULL DEFAULT 0,
+  searched_at INTEGER NOT NULL,
+  ip_hash TEXT,
+  user_agent TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_search_logs_searched_at ON search_logs (searched_at);
+
 INSERT INTO students (id,name,grade,class,phone) VALUES
 ('4146571502','احمد مشتاق احمد عامر','الثالث الابتدائي','1','966545465488'),
 ('4525718328','أيمن بدر محمد حسن الجندي','الثالث الابتدائي','1','966561229170'),
